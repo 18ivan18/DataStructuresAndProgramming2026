@@ -1,0 +1,20 @@
+---
+import Base from './Base.astro';
+import { REPO, WEEKS } from '../data/weeks';
+
+/* Layout for a week written in MDX: `layout: ../layouts/Week.astro` plus `week: 2`. */
+const { frontmatter } = Astro.props;
+const week = WEEKS.find((w) => w.n === frontmatter.week)!;
+const folder = `${REPO}/tree/main/${week.folder}`;
+---
+
+<Base title={`Седмица ${week.n}: ${frontmatter.title}`} description={frontmatter.description} current={week.page}>
+  <header class="topic-head">
+    <p class="eyebrow">Седмица {week.n}</p>
+    <h1>{frontmatter.title}</h1>
+    <p class="links"><a href={`${folder}#readme`}>README</a> · <a href={`${folder}/implementation`}>Реализации</a></p>
+  </header>
+  <article class="prose">
+    <slot />
+  </article>
+</Base>

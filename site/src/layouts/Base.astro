@@ -1,0 +1,67 @@
+---
+import '../styles/global.css';
+import { REPO, WEEKS, weekHref } from '../data/weeks';
+
+interface Props {
+  title: string;
+  description?: string;
+  /** Route of the current page, to mark it in the menu. */
+  current?: string;
+}
+
+const { title, description = 'Интерактивни материали към упражненията по Структури от данни и програмиране, ФМИ.', current } = Astro.props;
+const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+---
+
+<!doctype html>
+<html lang="bg">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} · СДП @ ФМИ</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+    <!-- Apply the saved theme before first paint, so dark-mode readers never see a white flash. -->
+    <script is:inline>
+      try {
+        const t = localStorage.getItem('theme');
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href={base}>СДП @ ФМИ</a>
+      <nav>
+        <a href={REPO}>GitHub</a>
+        <button type="button" class="theme-toggle" aria-label="Светла или тъмна тема">◐</button>
+      </nav>
+    </header>
+    <div class="shell">
+      <aside class="menu" aria-label="Седмици">
+        <ol>
+          {WEEKS.map((w) => (
+            <li>
+              <a href={weekHref(w, base)} aria-current={w.page && w.page === current ? 'page' : undefined} class={w.page ? '' : 'external'}>
+                <span class="n">{String(w.n).padStart(2, '0')}</span>{w.title}
+              </a>
+            </li>
+          ))}
+        </ol>
+      </aside>
+      <main>
+        <slot />
+      </main>
+    </div>
+    <script>
+      const root = document.documentElement;
+      document.querySelector('.theme-toggle')?.addEventListener('click', () => {
+        const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+        root.dataset.theme = dark ? 'light' : 'dark';
+        try {
+          localStorage.setItem('theme', root.dataset.theme);
+        } catch {}
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,23 @@
+---
+import Base from '../layouts/Base.astro';
+import { WEEKS, weekHref } from '../data/weeks';
+
+const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+---
+
+<Base title="Структури от данни и програмиране">
+  <header class="topic-head">
+    <p class="eyebrow">2026/2027 · ФМИ, Софийски университет</p>
+    <h1>Структури от данни и програмиране</h1>
+    <p class="links">Материалите от упражненията, с примери, които можеш да пускаш стъпка по стъпка.</p>
+  </header>
+  <div class="cards">
+    {WEEKS.map((w) => (
+      <a class="card" href={weekHref(w, base)}>
+        <span class="n">Седмица {w.n}</span>
+        <h3>{w.title}</h3>
+        {w.page ? <span class="tag">Интерактивно</span> : <span class="tag" style="color: var(--ink-soft)">README ↗</span>}
+      </a>
+    ))}
+  </div>
+</Base>
