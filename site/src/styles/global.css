@@ -278,3 +278,272 @@ details.spoiler[open] summary { margin-bottom: 0.4rem; }
 .cost-table th, .cost-table td { padding: 0.25rem 0.8rem 0.25rem 0; border-bottom: 1px solid var(--line); text-align: left; }
 .cost-table td:not(:first-child), .cost-table th:not(:first-child) { text-align: right; }
 .cost-table .swatch { vertical-align: middle; width: 1rem; }
+
+/* ===== week 1: memory diagram ===== */
+.mem-body { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.2fr); gap: 1.2rem; align-items: start; margin-top: 0.8rem; }
+@media (max-width: 60rem) { .mem-body { grid-template-columns: minmax(0, 1fr); } }
+pre.code.numbered { font-size: 0.78rem; max-height: 30rem; overflow: auto; }
+pre.code.numbered .ln { display: inline-block; width: 2.2em; margin-right: 0.6em; text-align: right; color: var(--ink-soft); opacity: 0.7; user-select: none; }
+pre.code.numbered .gap { color: var(--ink-soft); }
+.memory { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr); gap: 0 3.6rem; }
+/* Stack and heap stay side by side so arrows stay short; on a phone the diagram scrolls sideways. */
+.memory-scroll { overflow-x: auto; min-width: 0; }
+@media (max-width: 34rem) { .memory { min-width: 30rem; } }
+.mem-col h5 { margin: 0 0 0.4rem; font-size: 0.8rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; }
+.frame { margin-bottom: 0.6rem; padding: 0.4rem; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+.frame-name { font-family: var(--mono); font-size: 0.75rem; font-weight: 700; color: var(--accent); margin-bottom: 0.25rem; }
+.var { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; column-gap: 0.5rem; align-items: center; padding: 0.25rem 0.4rem; border-radius: 6px; font-size: 0.82rem; }
+.var + .var { border-top: 1px dashed var(--line); }
+.var.hot { animation: flash 1s ease-out; }
+.var-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.var-name code { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-soft); }
+.var-value { grid-row: span 2; justify-self: end; padding: 0.2rem 0.45rem; min-width: 2.4rem; text-align: center; font-family: var(--mono); font-weight: 700; border: 1px solid var(--line); border-radius: 5px; background: var(--surface); }
+.var-value.ptr { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 50%, transparent); font-size: 0.74rem; }
+.var-value.dangling { color: var(--bad); border-color: var(--bad); text-decoration: line-through; }
+.var-addr { font-family: var(--mono); font-size: 0.66rem; color: var(--ink-soft); }
+.block { margin-bottom: 0.6rem; padding: 0.35rem 0.45rem; border: 1px solid color-mix(in srgb, var(--path) 50%, transparent); border-radius: 8px; background: color-mix(in srgb, var(--path) 7%, var(--bg)); }
+.block.hot { animation: flash 1s ease-out; }
+.block.freed { opacity: 0.55; border-style: dashed; border-color: var(--bad); background: repeating-linear-gradient(135deg, transparent 0 6px, color-mix(in srgb, var(--bad) 10%, transparent) 6px 9px); }
+.block-head { font-size: 0.74rem; display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: baseline; margin-bottom: 0.25rem; }
+.block-head code { font-family: var(--mono); font-weight: 700; }
+.freed-tag { font-size: 0.68rem; color: var(--bad); font-weight: 600; }
+.block-cells { display: flex; flex-wrap: wrap; gap: 2px; }
+.bcell { min-width: 2.1rem; padding: 0.2rem 0.3rem; text-align: center; font-family: var(--mono); font-weight: 700; font-size: 0.82rem; border: 1px solid var(--line); background: var(--surface); }
+.bcell.garbage { color: var(--ink-soft); font-style: italic; font-weight: 400; }
+.heap-empty { padding: 0.4rem 0; }
+.arrows { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.arrows .arrow { fill: none; stroke: var(--accent); stroke-width: 1.8; }
+.arrows .arrow.dangling { stroke: var(--bad); stroke-dasharray: 4 3; }
+.arrows .ah { fill: var(--accent); }
+.arrows .ah.dangling { fill: var(--bad); }
+.console { margin-top: 0.9rem; padding: 0.5rem 0.8rem; font-family: var(--mono); font-size: 0.82rem; background: #15181d; color: #d9dde3; border-radius: 8px; }
+.console .muted { color: #8a919b; }
+.console .new { color: #8ee0b5; }
+.console-title { display: block; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.06em; color: #8a919b; margin-bottom: 0.2rem; }
+
+/* ===== week 1: contains() cases ===== */
+.tape.scan li { list-style: none; }
+.tape.scan button.tape-cell { cursor: pointer; font: inherit; font-family: var(--mono); color: inherit; }
+.tape.scan button[aria-pressed='true'] { box-shadow: 0 0 0 2px var(--accent); }
+.tape.scan .missing { border-style: dashed; }
+.cases { margin-top: 1rem; }
+.case-plot { position: relative; display: flex; align-items: flex-end; gap: 4px; height: 8rem; border-bottom: 1px solid var(--line); }
+.case { position: relative; flex: 1; min-height: 4px; background: color-mix(in srgb, var(--c-op) 45%, transparent); border-radius: 4px 4px 0 0; transition: background 0.2s; }
+.case.on { background: var(--c-op); }
+.case-n { position: absolute; top: -1.2rem; left: 0; right: 0; text-align: center; font-size: 0.72rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.avg-line { position: absolute; left: 0; right: 0; border-top: 2px dashed var(--ink); pointer-events: none; }
+.avg-line span { position: absolute; right: 0; top: -1.15rem; font-size: 0.72rem; background: var(--surface); padding: 0 0.3rem; }
+.case-labels { display: flex; gap: 4px; margin-top: 0.2rem; }
+.case-labels span { flex: 1; text-align: center; font-family: var(--mono); font-size: 0.68rem; color: var(--ink-soft); overflow: hidden; white-space: nowrap; }
+.case-legend { margin: 0.8rem 0 0; padding-left: 1.2rem; font-size: 0.88rem; }
+
+/* ===== week 1: asymptotic witnesses ===== */
+.definition { margin: 0.6rem 0; font-size: 0.88rem; }
+.definition code { font-family: var(--mono); font-weight: 700; }
+.sliders { margin-bottom: 0.4rem; }
+.chart .before-n0 { fill: color-mix(in srgb, var(--ink-soft) 12%, transparent); }
+.chart .series.f polyline { stroke: var(--c-op); stroke-width: 2.5; fill: none; }
+.chart .series.up polyline { stroke: var(--c-resize); stroke-width: 2; fill: none; }
+.chart .series.lo polyline { stroke: var(--c-third); stroke-width: 2; fill: none; stroke-dasharray: 6 3; }
+.chart .violation line { stroke: var(--bad); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.chart .violation circle { fill: var(--bad); stroke: var(--surface); stroke-width: 2; }
+.chart .axis-label.n0 { text-anchor: middle; fill: var(--ink); }
+.swatch.line.f { background: var(--c-op); height: 3px; }
+.swatch.line.up { background: var(--c-resize); height: 3px; }
+.swatch.line.lo { background: repeating-linear-gradient(90deg, var(--c-third) 0 5px, transparent 5px 8px); height: 3px; }
+.swatch.before { background: color-mix(in srgb, var(--ink-soft) 25%, transparent); }
+details.hint { margin: 0.6rem 0 0; font-size: 0.88rem; }
+details.hint summary { cursor: pointer; color: var(--accent); }
+
+/* ===== week 1: growth explorer ===== */
+.chart.growth { margin-top: 0.6rem; }
+.growth-line { fill: none; stroke: var(--ink-soft); stroke-width: 1.5; opacity: 0.5; cursor: pointer; }
+.growth-line.focus { stroke: var(--accent); stroke-width: 3; opacity: 1; }
+.chart .growth-label { font-size: 10.5px; fill: var(--ink-soft); }
+.chart .growth-label.top { text-anchor: middle; }
+.chart .growth-label.focus { fill: var(--accent); font-weight: 700; }
+.chart .ref line { stroke: var(--ink-soft); stroke-width: 1; stroke-dasharray: 2 4; }
+.chart .ref text { font-size: 10px; fill: var(--ink-soft); }
+.chart .cursor { stroke: var(--current); stroke-width: 2; }
+.chart .tick { text-anchor: middle; }
+.growth-table tr { cursor: default; }
+.growth-table tr.focus td { background: var(--accent-soft); }
+.speed { font-weight: 600; }
+.speed.fast { color: var(--path); }
+.speed.slow { color: var(--c-resize); }
+.speed.never { color: var(--bad); }
+.growth-table td:last-child { text-align: left; }
+.growth-table th:last-child { text-align: left; }
+
+/* ===== week 1: map / filter / reduce ===== */
+.hof-body { margin-top: 0.8rem; display: grid; gap: 0.6rem; }
+.hof-row { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); align-items: center; gap: 0.6rem; }
+.hof-label { font-size: 0.8rem; color: var(--ink-soft); text-align: right; }
+.hof-applied { padding-left: 7.1rem; font-size: 0.9rem; min-height: 1.4rem; }
+.hof-applied code { font-family: var(--mono); font-weight: 600; }
+.acc { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.6rem; }
+.acc-value { padding: 0.3rem 0.7rem; font-family: var(--mono); font-weight: 700; font-size: 1.05rem; border: 2px solid var(--accent); border-radius: 8px; background: var(--accent-soft); }
+.acc-expr { font-family: var(--mono); font-size: 0.85rem; color: var(--ink-soft); word-break: break-all; }
+@media (max-width: 34rem) { .hof-row { grid-template-columns: minmax(0, 1fr); } .hof-label { text-align: left; } .hof-applied { padding-left: 0; } }
+
+.segmented button code, .presets button code { background: none; padding: 0; color: inherit; }
+
+/* ===== week 3: circular queue ===== */
+.ring { width: 100%; max-width: 22rem; display: block; margin: 0 auto; }
+.ring .slot path { fill: var(--bg); stroke: var(--line); stroke-width: 1; transition: fill 0.25s; }
+.ring .slot.live path { fill: var(--accent-soft); stroke: color-mix(in srgb, var(--accent) 45%, transparent); }
+.ring .slot.first path { stroke: var(--path); stroke-width: 2.5; }
+.ring .slot.hit path { fill: color-mix(in srgb, var(--current) 40%, var(--accent-soft)); }
+.ring .slot-v { text-anchor: middle; dominant-baseline: middle; font-family: var(--mono); font-weight: 700; fill: var(--ink); }
+.ring .slot.stale .slot-v { fill: var(--ink-soft); opacity: 0.45; font-weight: 400; }
+.ring .slot-i { text-anchor: middle; dominant-baseline: middle; font-size: 8px; font-family: var(--mono); fill: var(--ink-soft); }
+.ring .ring-center { text-anchor: middle; font-size: 22px; font-weight: 700; fill: var(--ink); }
+.ring .ring-center.small { font-size: 11px; font-weight: 400; fill: var(--ink-soft); }
+.ring .ring-marker line { stroke-width: 2; }
+.ring .ring-marker text { font-size: 12px; font-weight: 700; font-family: var(--mono); }
+.ring .m-first line { stroke: var(--path); } .ring .m-first text { fill: var(--path); }
+.ring .m-end line { stroke: var(--c-resize); stroke-dasharray: 3 2; } .ring .m-end text { fill: var(--c-resize); }
+.ring.resized .slot.live path { animation: flash 0.9s ease-out; }
+.chain .node.last .box { box-shadow: 0 0 0 2px color-mix(in srgb, var(--c-resize) 60%, transparent); }
+
+/* ===== week 3: two stacks ===== */
+.logical-queue, .deque { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; }
+.lq-cell { min-width: 2rem; padding: 0.25rem 0.5rem; text-align: center; font-family: var(--mono); font-weight: 700; border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); border-radius: 6px; background: var(--accent-soft); }
+.two-stacks { margin-top: 1rem; align-items: center; }
+.two-stacks .stack-col { width: 8rem; }
+.transfer { font-family: var(--mono); font-size: 1.1rem; color: var(--ink-soft); padding-top: 1.5rem; }
+.transfer.on { color: var(--path); font-weight: 700; }
+
+/* ===== week 3: battle on the bridge ===== */
+.warriors { display: flex; flex-wrap: wrap; gap: 4px; list-style: none; margin: 0.9rem 0 0; padding: 0; }
+.warrior { position: relative; display: flex; flex-direction: column; align-items: center; min-width: 2.6rem; padding: 0.25rem 0.3rem; font-family: var(--mono); border: 1px solid var(--line); border-radius: 8px; background: var(--bg); transition: all 0.2s; }
+.warrior .dir { font-size: 0.8rem; color: var(--ink-soft); }
+.warrior .v { font-weight: 700; }
+.warrior .st { position: absolute; top: -0.5rem; right: -0.3rem; font-size: 0.75rem; font-weight: 800; }
+.warrior.waiting { opacity: 0.55; }
+.warrior.stack { border-color: var(--accent); background: var(--accent-soft); }
+.warrior.queue { border-color: var(--c-resize); background: color-mix(in srgb, var(--c-resize) 15%, var(--bg)); }
+.warrior.dead { opacity: 0.45; border-style: dashed; text-decoration: line-through; }
+.warrior.dead .st { color: var(--bad); }
+.warrior.passed { border-color: var(--path); background: color-mix(in srgb, var(--path) 14%, var(--bg)); }
+.warrior.passed .st { color: var(--path); }
+.warrior.fighting { box-shadow: 0 0 0 2px var(--bad); opacity: 1; text-decoration: none; }
+.battle { display: grid; grid-template-columns: 9rem minmax(0, 1fr) minmax(0, 1.3fr); gap: 1rem; align-items: center; margin-top: 1rem; }
+@media (max-width: 40rem) { .battle { grid-template-columns: minmax(0, 1fr); } }
+.arena { display: flex; align-items: center; justify-content: center; gap: 0.5rem; min-height: 3rem; text-align: center; }
+.arena .fighter { padding: 0.35rem 0.6rem; font-family: var(--mono); font-weight: 700; border-radius: 8px; }
+.arena .fighter.right { background: var(--accent-soft); border: 2px solid var(--accent); }
+.arena .fighter.left { background: color-mix(in srgb, var(--c-resize) 15%, var(--bg)); border: 2px solid var(--c-resize); }
+.arena .vs { font-size: 1.4rem; }
+.queue-title { margin: 0 0 0.3rem; font-size: 0.8rem; font-weight: 600; color: var(--ink-soft); }
+.dq-cell.fight { border: 2px solid var(--bad); }
+
+/* ===== week 3: sliding window ===== */
+.window-cells { display: flex; flex-wrap: wrap; gap: 3px; list-style: none; margin: 0.9rem 0 0.4rem; padding: 0; }
+.wcell { display: flex; flex-direction: column; align-items: center; }
+.wcell .v { min-width: 2.4rem; padding: 0.35rem 0.4rem; text-align: center; font-family: var(--mono); font-weight: 600; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); transition: all 0.2s; }
+.wcell .i, .dq-cell .i { font-size: 0.66rem; font-family: var(--mono); color: var(--ink-soft); }
+.wcell.in .v { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.wcell.kept .v { border-color: var(--accent); border-width: 2px; }
+.wcell.current .v { box-shadow: 0 0 0 2px var(--current); }
+.wcell.removed .v { background: color-mix(in srgb, var(--bad) 18%, transparent); border-color: var(--bad); color: var(--bad); text-decoration: line-through; }
+.dq-cell { display: inline-flex; flex-direction: column; align-items: center; min-width: 2.6rem; padding: 0.2rem 0.4rem; font-family: var(--mono); border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); border-radius: 6px; background: var(--accent-soft); animation: sv-drop 0.25s ease-out; }
+.dq-cell.max { border: 2px solid var(--path); background: color-mix(in srgb, var(--path) 15%, transparent); }
+
+/* ===== week 3: maze BFS ===== */
+.maze-body { grid-template-columns: minmax(0, 26rem) minmax(0, 1fr); }
+.maze { display: grid; grid-template-columns: repeat(10, 1fr); gap: 2px; width: 100%; max-width: 26rem; }
+.mcell { aspect-ratio: 1; padding: 0; font: inherit; font-family: var(--mono); font-size: 0.72rem; font-weight: 600; border: 0; border-radius: 3px; cursor: pointer; color: var(--ink); transition: background 0.2s; }
+.mcell.wall { background: var(--ink); opacity: 0.8; }
+.mcell.open { background: var(--bg); box-shadow: inset 0 0 0 1px var(--line); }
+.mcell.reached { background: color-mix(in srgb, var(--accent) 22%, var(--bg)); }
+.mcell.queued { background: color-mix(in srgb, var(--accent) 45%, var(--bg)); }
+.mcell.added { box-shadow: inset 0 0 0 2px var(--accent); }
+.mcell.current { background: var(--current); color: #1b1d21; }
+.mcell.path { background: var(--path); color: #fff; }
+.mcell.src { background: var(--accent); color: #fff; font-weight: 800; }
+.mcell.dest { background: var(--bad); color: #fff; font-weight: 800; }
+.maze-legend { display: flex; flex-wrap: wrap; gap: 0.3rem 0.9rem; list-style: none; margin: 0.5rem 0 0; padding: 0; font-size: 0.78rem; color: var(--ink-soft); }
+.maze-legend li { display: inline-flex; align-items: center; gap: 0.3rem; }
+.maze-legend .mcell { width: 1rem; height: 1rem; display: inline-block; cursor: default; }
+.mcell.dest.path, .mcell.src.path { background: var(--path); color: #fff; }
+.bfs-queue { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.25rem; font-family: var(--mono); font-size: 0.78rem; }
+.bfs-queue li { padding: 0.15rem 0.4rem; border: 1px solid var(--line); border-radius: 5px; background: var(--bg); }
+.bfs-queue li.front { border-color: var(--current); box-shadow: 0 0 0 1px var(--current); }
+@media (max-width: 40rem) { .maze-body { grid-template-columns: minmax(0, 1fr); } }
+.battle .stack-col { width: auto; }
+
+/* ===== week 4: list diagrams ===== */
+.list-diagram { width: 100%; height: auto; display: block; margin-top: 0.6rem; overflow: visible; font-family: var(--mono); }
+.ld-node rect { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
+.ld-node text { text-anchor: middle; dominant-baseline: central; font-size: 13px; font-weight: 700; fill: var(--ink); }
+.ld-node .ld-split { stroke: color-mix(in srgb, var(--accent) 45%, transparent); }
+.ld-node .ld-dot { fill: var(--accent); }
+.ld-node.dummy rect { fill: var(--bg); stroke-dasharray: 4 3; stroke: var(--ink-soft); }
+.ld-node.dummy text { font-size: 9px; font-weight: 400; fill: var(--ink-soft); }
+.ld-node.freed rect { fill: color-mix(in srgb, var(--bad) 10%, var(--bg)); stroke: var(--bad); stroke-dasharray: 4 3; }
+.ld-node.freed > text { fill: var(--bad); text-decoration: line-through; opacity: 0.7; }
+.ld-node.val-hot rect { fill: color-mix(in srgb, var(--current) 45%, var(--bg)); }
+.ld-edge { fill: none; stroke: var(--ink-soft); stroke-width: 1.8; }
+.ld-edge.hot { stroke: var(--c-resize); stroke-width: 2.8; }
+.ld-ah { fill: var(--ink-soft); }
+.ld-ah.hot { fill: var(--c-resize); }
+.ld-null { font-size: 13px; fill: var(--ink-soft); stroke: none; dominant-baseline: central; }
+.ld-var text, text.ld-nulls { font-size: 11px; font-weight: 700; }
+.ld-var text { text-anchor: middle; }
+.ld-var-tick { stroke: var(--ink-soft); stroke-width: 1.5; }
+.v-head text, tspan.v-head { fill: var(--accent); }
+.v-last text, tspan.v-last { fill: var(--c-resize); }
+.v-prev text, tspan.v-prev { fill: var(--c-third); }
+.v-curr text, tspan.v-curr { fill: var(--path); }
+.v-new text, tspan.v-new { fill: var(--bad); }
+.v-tmp text, tspan.v-tmp { fill: var(--ink-soft); }
+text.ld-nulls { fill: var(--ink-soft); font-weight: 400; }
+.list-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 22rem); gap: 1rem; align-items: start; }
+@media (max-width: 60rem) { .list-body { grid-template-columns: minmax(0, 1fr); } }
+.list-code { font-size: 0.74rem; max-height: 22rem; overflow: auto; margin-top: 0.6rem; }
+/* On a phone the diagram keeps a readable size and scrolls sideways. */
+.diagram-scroll { overflow-x: auto; min-width: 0; }
+@media (max-width: 40rem) { .diagram-scroll .list-diagram { min-width: 34rem; } }
+.ld-edge.prev { stroke: color-mix(in srgb, var(--c-third) 75%, var(--ink-soft)); }
+.ld-edge.prev.hot { stroke: var(--c-resize); }
+.ld-ah.prev { fill: color-mix(in srgb, var(--c-third) 75%, var(--ink-soft)); }
+.ld-node .ld-dot.prev { fill: var(--c-third); }
+
+/* ===== week 5: skip list ===== */
+.skiplist { width: 100%; height: auto; display: block; margin-top: 0.6rem; font-family: var(--mono); }
+.sk-cell rect { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.4; transition: fill 0.2s; }
+.sk-cell text { text-anchor: middle; dominant-baseline: central; font-size: 12px; font-weight: 700; fill: var(--ink); }
+.sk-cell.head rect { fill: var(--bg); stroke: var(--ink-soft); stroke-dasharray: 3 2; }
+.sk-cell.head text { font-size: 9px; font-weight: 400; fill: var(--ink-soft); }
+.sk-cell.path rect { stroke: var(--current); stroke-width: 2.5; }
+.sk-cell.here rect { fill: var(--current); stroke: var(--current); }
+.sk-link { stroke: var(--ink-soft); stroke-width: 1.5; }
+.sk-null { stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.sk-ah { fill: var(--ink-soft); }
+.sk-down { stroke: color-mix(in srgb, var(--accent) 35%, transparent); stroke-width: 1; stroke-dasharray: 2 3; }
+.sk-level-label { font-size: 10px; fill: var(--ink-soft); dominant-baseline: central; }
+.coin { margin-left: 0.3rem; padding: 0 0.35rem; border-radius: 999px; font-size: 0.78rem; }
+.coin.heads { background: color-mix(in srgb, var(--path) 20%, transparent); color: var(--path); }
+.coin.tails { background: color-mix(in srgb, var(--bad) 15%, transparent); color: var(--bad); }
+
+/* ===== week 5: XOR list ===== */
+.xor-nodes { display: flex; flex-wrap: wrap; gap: 0.5rem; list-style: none; margin: 0.9rem 0 0; padding: 0; }
+.xor-node { display: flex; flex-direction: column; align-items: center; gap: 0.1rem; min-width: 7.2rem; padding: 0.45rem 0.6rem; font-family: var(--mono); font-size: 0.78rem; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); transition: all 0.2s; }
+.xor-node .xor-val { font-size: 1.1rem; font-weight: 800; }
+.xor-node .xor-addr, .xor-node .xor-why { color: var(--ink-soft); font-size: 0.7rem; }
+.xor-node .xor-link { font-weight: 600; color: var(--accent); }
+.xor-node.here { border-color: var(--current); box-shadow: 0 0 0 2px var(--current); }
+.xor-node.seen { opacity: 0.55; }
+.xor-calc { margin-top: 0.9rem; }
+.xor-bits { display: inline-block; margin: 0.2rem 0 0; padding: 0.6rem 0.9rem; font-family: var(--mono); font-size: 0.85rem; line-height: 1.5; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; }
+
+/* ===== week 5: circular deque ===== */
+.deque-body { display: grid; grid-template-columns: minmax(0, 20rem) minmax(0, 1fr); gap: 1.2rem; align-items: center; margin-top: 0.6rem; }
+@media (max-width: 40rem) { .deque-body { grid-template-columns: minmax(0, 1fr); } }
+.ring .m-rear line { stroke: var(--c-third); } .ring .m-rear text { fill: var(--c-third); }
+.deque-views { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.5rem; align-items: start; margin-top: 0.6rem; }
+@media (max-width: 52rem) { .deque-views { grid-template-columns: minmax(0, 1fr); } }
+.deque-views h4 { margin: 0 0 0.2rem; font-size: 0.9rem; }
+.deque-views .ring { max-width: 19rem; }
+.ld-guide { fill: none; stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 4 5; }

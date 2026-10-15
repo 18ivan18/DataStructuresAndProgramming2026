@@ -10,13 +10,17 @@
     "reference": "c++ -std=c++17 -O1 -o /tmp/dsp-reference scripts/reference.cpp && /tmp/dsp-reference > src/lib/__fixtures__/cpp.json"
   },
   "dependencies": {
+    "@astrojs/markdown-satteri": "^0.4.3",
     "@astrojs/mdx": "^8.0.3",
     "@astrojs/react": "^7.0.1",
     "astro": "^7.3.8",
+    "katex": "^0.19.0",
     "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "react-dom": "^19.3.0",
+    "satteri": "^0.10.5"
   },
   "devDependencies": {
+    "@types/node": "^22.20.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "typescript": "^7.0.2",

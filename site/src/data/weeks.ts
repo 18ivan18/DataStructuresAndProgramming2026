@@ -12,11 +12,11 @@ export interface Week {
 export const REPO = 'https://github.com/18ivan18/DataStructuresAndProgramming2026';
 
 export const WEEKS: Week[] = [
-  { n: 1, title: 'Преговор: указатели, big O, функции от по-висок ред', folder: 'week01' },
+  { n: 1, title: 'Преговор: указатели, big O, функции от по-висок ред', folder: 'week01', page: 'week01' },
   { n: 2, title: 'Структури от данни. Стек', folder: 'week02', page: 'week02' },
-  { n: 3, title: 'Опашка', folder: 'week03' },
-  { n: 4, title: 'Свързан списък', folder: 'week04' },
-  { n: 5, title: 'Двусвързан списък', folder: 'week05' },
+  { n: 3, title: 'Опашка', folder: 'week03', page: 'week03' },
+  { n: 4, title: 'Свързан списък', folder: 'week04', page: 'week04' },
+  { n: 5, title: 'Двусвързан списък', folder: 'week05', page: 'week05' },
   { n: 6, title: 'Подготовка за контролно', folder: 'week06' },
   { n: 7, title: 'Въведение в дърветата', folder: 'week07' },
   { n: 8, title: 'Двоично наредено дърво (BST)', folder: 'week08' },

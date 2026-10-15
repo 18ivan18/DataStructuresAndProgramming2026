@@ -18,15 +18,20 @@ export interface Stepper<T> {
 }
 
 export function useStepper<T>(steps: T[], intervalMs = 900): Stepper<T> {
-  const [index, setIndex] = useState(0);
+  const [state, setState] = useState({ steps, index: 0 });
   const [playing, setPlaying] = useState(false);
   const last = steps.length - 1;
 
   // New steps (another algorithm, start or parameter) mean a new run: go back to the beginning.
-  useEffect(() => {
-    setIndex(0);
+  // This happens during render, not in an effect, so no render ever pairs the new steps with an old
+  // index: callers that index their own arrays by `index` would read past the end.
+  if (state.steps !== steps) {
+    setState({ steps, index: 0 });
     setPlaying(false);
-  }, [steps]);
+  }
+  const index = state.steps === steps ? Math.min(state.index, last) : 0;
+  const setIndex = (update: number | ((i: number) => number)) =>
+    setState((s) => ({ ...s, index: typeof update === 'function' ? update(s.index) : update }));
 
   useEffect(() => {
     if (!playing) return;
