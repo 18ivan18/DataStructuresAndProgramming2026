@@ -1,6 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
-import { WEEKS, weekHref } from '../data/weeks';
+import { REPO, WEEKS, quizHref, slidesHref, weekHref } from '../data/weeks';
 
 const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
 ---
@@ -11,13 +11,33 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
     <h1>Структури от данни и програмиране</h1>
     <p class="links">Материалите от упражненията, с примери, които можеш да пускаш стъпка по стъпка.</p>
   </header>
-  <div class="cards">
-    {WEEKS.map((w) => (
-      <a class="card" href={weekHref(w, base)}>
-        <span class="n">Седмица {w.n}</span>
-        <h3>{w.title}</h3>
-        {w.page ? <span class="tag">Интерактивно</span> : <span class="tag" style="color: var(--ink-soft)">README ↗</span>}
-      </a>
-    ))}
+
+  <div class="table-card">
+    <table class="week-table">
+      <thead>
+        <tr>
+          <th>Тема</th>
+          <th>Материали</th>
+          <th>Тест</th>
+          <th>Слайдове</th>
+        </tr>
+      </thead>
+      <tbody>
+        {WEEKS.map((w) => (
+          <tr>
+            <td class="week-topic"><span class="lab-num">{String(w.n).padStart(2, '0')}</span>{w.title}</td>
+            <td>
+              {w.page ? (
+                <a class="go" href={weekHref(w, base)}>Материали →</a>
+              ) : (
+                <a class="go ghost" href={`${REPO}/tree/main/${w.folder}`}>README ↗</a>
+              )}
+            </td>
+            <td>{w.quiz ? <a class="go" href={quizHref(w, base)}>Тест →</a> : <span class="soon">скоро</span>}</td>
+            <td>{w.slides ? <a class="go" href={slidesHref(w, base)}>Презентация →</a> : <span class="soon">скоро</span>}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   </div>
 </Base>

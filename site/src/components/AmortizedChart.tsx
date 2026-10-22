@@ -9,10 +9,10 @@ type Mode = 'grow' | 'wobble';
 
 const W = 640, H = 220, PAD = { l: 34, r: 8, t: 22, b: 26 };
 
-export default function AmortizedChart() {
-  const [mode, setMode] = useState<Mode>('grow');
+export default function AmortizedChart({ mode: startMode = 'grow', rule: startRule = 'quarter' }: { mode?: Mode; rule?: ShrinkRule }) {
+  const [mode, setMode] = useState<Mode>(startMode);
   const [count, setCount] = useState(40);
-  const [rule, setRule] = useState<ShrinkRule>('quarter');
+  const [rule, setRule] = useState<ShrinkRule>(startRule);
   const [hover, setHover] = useState<number | null>(null);
 
   const { ops, results, skip } = useMemo(() => {

@@ -1,16 +1,18 @@
 ---
 import 'katex/dist/katex.min.css';
 import '../styles/global.css';
-import { REPO, WEEKS, weekHref } from '../data/weeks';
+import { REPO, WEEKS, quizHref, slidesHref, weekHref } from '../data/weeks';
 
 interface Props {
   title: string;
   description?: string;
   /** Route of the current page, to mark it in the menu. */
   current?: string;
+  /** Drops the top bar and the week menu, for a page that fills the screen. */
+  bare?: boolean;
 }
 
-const { title, description = 'Интерактивни материали към упражненията по Структури от данни и програмиране, ФМИ.', current } = Astro.props;
+const { title, description = 'Интерактивни материали към упражненията по Структури от данни и програмиране, ФМИ.', current, bare = false } = Astro.props;
 const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
 ---
 
@@ -31,32 +33,46 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
     </script>
   </head>
   <body>
-    <header class="topbar">
-      <a class="brand" href={base}>СДП @ ФМИ</a>
-      <nav>
-        <a href={REPO}>GitHub</a>
-        <button type="button" class="theme-toggle" aria-label="Светла или тъмна тема">◐</button>
-      </nav>
-    </header>
-    <div class="shell">
-      <aside class="menu" aria-label="Седмици">
-        <ol>
-          {WEEKS.map((w) => (
-            <li>
-              <a href={weekHref(w, base)} aria-current={w.page && w.page === current ? 'page' : undefined} class={w.page ? '' : 'external'}>
-                <span class="n">{String(w.n).padStart(2, '0')}</span>{w.title}
-              </a>
-            </li>
-          ))}
-        </ol>
-      </aside>
-      <main>
-        <slot />
-      </main>
-    </div>
+    {bare ? (
+      <slot />
+    ) : (
+      <Fragment>
+        <header class="topbar">
+          <a class="brand" href={base}>СДП @ ФМИ</a>
+          <nav>
+            <a href={REPO}>GitHub</a>
+            <button type="button" class="theme-toggle" aria-label="Светла или тъмна тема">◐</button>
+          </nav>
+        </header>
+        <div class="shell">
+          <aside class="menu" aria-label="Седмици">
+            <ol>
+              {WEEKS.map((w) => (
+                <li>
+                  <a href={weekHref(w, base)} aria-current={w.page && w.page === current ? 'page' : undefined} class={w.page ? '' : 'external'}>
+                    <span class="n">{String(w.n).padStart(2, '0')}</span>{w.title}
+                  </a>
+                  {(w.quiz || w.slides) && (
+                    <span class="sub-links">
+                      {w.quiz && <a href={quizHref(w, base)} aria-current={current === `${w.page}/quiz` ? 'page' : undefined}>тест</a>}
+                      {w.slides && <a href={slidesHref(w, base)} aria-current={current === `${w.page}/slides` ? 'page' : undefined}>слайдове</a>}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </aside>
+          <main>
+            <slot />
+          </main>
+        </div>
+      </Fragment>
+    )}
     <script>
       const root = document.documentElement;
-      document.querySelector('.theme-toggle')?.addEventListener('click', () => {
+      document.addEventListener('click', (event) => {
+        const target = event.target;
+        if (!(target instanceof Element) || !target.closest('.theme-toggle')) return;
         const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
         root.dataset.theme = dark ? 'light' : 'dark';
         try {
