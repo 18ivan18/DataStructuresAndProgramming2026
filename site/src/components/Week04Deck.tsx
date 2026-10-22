@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import type { ReactElement } from 'react';
 import ListSandbox from './ListSandbox';
-import ListTaskTrace from './ListTaskTrace';
 import { Deck, type Slide } from './Deck';
 
 function Chain({ values, doubly = false }: { values: number[]; doubly?: boolean }): ReactElement {
@@ -207,49 +206,6 @@ const SLIDES = (notes: string, quiz: string): Slide[] => [
     ),
   },
   {
-    id: 'slide-reverse',
-    title: 'Задача 1: обръщане на списък',
-    badge: 'Пробвай',
-    lede: 'Три указателя и по една обърната стрелка на всяка стъпка. Допълнителна памет O(1).',
-    content: <ListTaskTrace task="reverse" />,
-  },
-  {
-    id: 'slide-cycle',
-    title: 'Задача 2: има ли цикъл',
-    badge: 'Пробвай',
-    lede: 'Костенурка и заек: бавният прави една стъпка, бързият две. Ако има цикъл, бързият рано или късно догонва бавния.',
-    content: <ListTaskTrace task="cycle" />,
-  },
-  {
-    id: 'slide-delete',
-    title: 'Задача 6: изтриване без достъп до началото',
-    badge: 'Пробвай',
-    lede: 'Подаден ни е самият възел. Щом не можем да стигнем до предишния, преписваме следващия върху себе си и трием него.',
-    content: <ListTaskTrace task="delete" />,
-  },
-  {
-    id: 'slide-nth',
-    title: 'Задача 7: n-тият от края',
-    badge: 'Пробвай',
-    lede: 'Два указателя на разстояние n и фиктивно начало, за да няма специален случай при махане на първия възел.',
-    content: <ListTaskTrace task="nth" />,
-  },
-  {
-    id: 'slide-rest',
-    title: 'Останалите задачи',
-    content: (
-      <>
-        <ol className="sl-tasks">
-          <li>Сливане на два сортирани списъка</li>
-          <li>Сортиране на свързан списък — може ли за O(n log n) и O(1) памет?</li>
-          <li>Сбор на числа, записани по цифри в обратен ред</li>
-          <li>Изравняване на многослоен двусвързан списък</li>
-        </ol>
-        <p className="muted small">Номерата в бележките са 3, 4, 5 и 8. Към тях има и допълнителни задачи в папката на седмицата.</p>
-      </>
-    ),
-  },
-  {
     id: 'slide-end',
     title: 'Накратко',
     content: (
@@ -264,7 +220,7 @@ const SLIDES = (notes: string, quiz: string): Slide[] => [
           <li>Списъкът печели при вмъкване по указател и стабилни адреси; масивът печели при индексиране и при обхождане.</li>
         </ul>
         <p className="sl-links">
-          <a href={notes}>Бележките към седмица 4</a> · <a href={quiz}>Тест за самопроверка</a>
+          <a href={notes}>Бележките към седмица 4</a> · <a href={`${notes}#задачи`}>Задачите</a> · <a href={quiz}>Тест за самопроверка</a>
         </p>
       </>
     ),

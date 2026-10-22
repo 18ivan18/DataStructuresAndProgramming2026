@@ -683,7 +683,6 @@ text.ld-nulls { fill: var(--ink-soft); font-weight: 400; }
 .sl-cols-3 { grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); }
 .sl-card { padding: 0.9rem 1rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
 .sl-art { width: 100%; height: auto; max-height: 46vh; }
-.sl-tasks { columns: 2; column-gap: 2.5rem; }
 .sl-links { margin-top: 1.2rem; }
 .sl-cols .stack-view { margin-right: 4.6rem; }
 
@@ -699,6 +698,5 @@ text.ld-nulls { fill: var(--ink-soft); font-weight: 400; }
 @media (max-width: 40rem) {
   .sl-cover-grid { grid-template-columns: minmax(0, 1fr); }
   .sl-cover-grid .stack-view { display: none; }
-  .sl-tasks { columns: 1; }
   .deck-exit span { display: none; }
 }

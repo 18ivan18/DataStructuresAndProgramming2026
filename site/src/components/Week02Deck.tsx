@@ -229,23 +229,6 @@ const SLIDES = (notes: string, quiz: string): Slide[] => [
     ),
   },
   {
-    id: 'slide-tasks',
-    title: 'Задачите за днес',
-    content: (
-      <ol className="sl-tasks">
-        <li>Обръщане на реда на думите</li>
-        <li>Валидни скоби</li>
-        <li>Минимален стек — <code>getMin</code> за O(1)</li>
-        <li>Обратен полски запис</li>
-        <li>Опростяване на път</li>
-        <li>Калкулатор със скоби</li>
-        <li>Калкулатор с приоритет на операциите</li>
-        <li>Отровни цветя</li>
-        <li>Пресичащи се интервали</li>
-      </ol>
-    ),
-  },
-  {
     id: 'slide-end',
     title: 'Накратко',
     content: (
@@ -261,7 +244,7 @@ const SLIDES = (notes: string, quiz: string): Slide[] => [
           <li>Стекът дава достъп само до върха — и затова обръща ред, помни откъде си дошъл и носи извикванията на функциите.</li>
         </ul>
         <p className="sl-links">
-          <a href={notes}>Бележките към седмица 2</a> · <a href={quiz}>Тест за самопроверка</a>
+          <a href={notes}>Бележките към седмица 2</a> · <a href={`${notes}#задачи`}>Задачите</a> · <a href={quiz}>Тест за самопроверка</a>
         </p>
       </>
     ),
