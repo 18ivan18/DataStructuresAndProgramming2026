@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { week02Quiz } from '../data/quizzes/week02';
+import { week03Quiz } from '../data/quizzes/week03';
 import { week04Quiz } from '../data/quizzes/week04';
+import { week05Quiz } from '../data/quizzes/week05';
 import { type ArrayStackState, type StackOp, applyOp, emptyStack, runOps } from './arrayStack';
+import { type DoublyOp, runDoublyOp } from './doubly';
 import { type ListOp, type ListState, emptyList, listValues, runOp } from './linked';
+import { type RingState, dequeue, emptyRing, enqueue, ringItems } from './queue';
 import {
   type Answers,
   type Part,
@@ -105,7 +109,9 @@ describe('grading one part', () => {
 
 describe.each([
   ['week 2', week02Quiz],
+  ['week 3', week03Quiz],
   ['week 4', week04Quiz],
+  ['week 5', week05Quiz],
 ])('the %s quiz', (_name, quiz) => {
   it('gives every task a known skill and at least one part', () => {
     const ids = new Set(quiz.skills.map((s) => s.id));
@@ -169,7 +175,9 @@ describe.each([
 
 const taskIn = (quiz: Quiz, id: string) => quiz.tasks.find((t) => t.id === id)!;
 const task = (id: string) => taskIn(week02Quiz, id);
+const task3 = (id: string) => taskIn(week03Quiz, id);
 const task4 = (id: string) => taskIn(week04Quiz, id);
+const task5 = (id: string) => taskIn(week05Quiz, id);
 
 const numIn = (quiz: Quiz, taskId: string, index: number): number => {
   const part = taskIn(quiz, taskId).parts[index];
@@ -242,6 +250,88 @@ describe('the answers agree with the simulated ArrayStack', () => {
   });
 });
 
+describe('the week 3 answers agree with the simulated ArrayQueue', () => {
+  const filled = (count: number): RingState => Array.from({ length: count }, (_, i) => i + 1).reduce((s, v) => enqueue(s, v).state, emptyRing());
+
+  it('about what the traced calls return', () => {
+    let s = enqueue(enqueue(emptyRing(), 1).state, 2).state;
+    const returned: string[] = [];
+    const first = dequeue(s);
+    returned.push(String(first.value));
+    s = enqueue(first.state, 3).state;
+    const peeked = ringItems(s)[0];
+    const second = dequeue(s);
+    returned.push(String(second.value));
+    const [order, peek] = task3('fifo-order').parts;
+    if (order.kind !== 'seq' || peek.kind !== 'num') throw new Error('fifo-order should be a seq and a num');
+    expect(returned).toEqual(order.answer);
+    expect(peeked).toBe(peek.answer);
+  });
+
+  it('about where the end wraps round to', () => {
+    let s = filled(8);
+    for (let i = 0; i < 3; i++) s = dequeue(s).state;
+    const [first, cells] = task3('ring-wrap').parts;
+    if (first.kind !== 'num' || cells.kind !== 'multi') throw new Error('ring-wrap should be a num and a multi');
+    expect(s.first).toBe(first.answer);
+    const landed: number[] = [];
+    for (const value of [9, 10, 11]) {
+      const r = enqueue(s, value);
+      landed.push(r.index);
+      s = r.state;
+    }
+    expect(cells.answer.map((i) => cells.options[i])).toEqual(landed.map((i) => `\`arr[${i}]\``));
+  });
+
+  it('about the ring unrolling when it grows', () => {
+    let s = filled(8);
+    for (let i = 0; i < 3; i++) s = dequeue(s).state;
+    for (const value of [9, 10, 11]) s = enqueue(s, value).state;
+    expect([s.n, s.cells.length, s.first]).toEqual([8, 8, 3]); // the state the task describes
+    const grown = enqueue(s, 12);
+    const [capacity, first, index] = task3('ring-grow').parts;
+    if (capacity.kind !== 'num' || first.kind !== 'num' || index.kind !== 'num') throw new Error('ring-grow should be three nums');
+    expect(grown.state.cells.length).toBe(capacity.answer);
+    expect(grown.state.first).toBe(first.answer);
+    expect(grown.index).toBe(index.answer);
+  });
+
+  it('about how much a thousand enqueues copy', () => {
+    let s = emptyRing();
+    let copied = 0;
+    for (let i = 1; i <= 1000; i++) {
+      const r = enqueue(s, i);
+      if (r.resize) copied += s.n; // resize moves the live elements, nothing else
+      s = r.state;
+    }
+    const [capacity, moved] = task3('ring-amortized').parts;
+    if (capacity.kind !== 'num' || moved.kind !== 'num') throw new Error('ring-amortized should be two nums');
+    expect(s.cells.length).toBe(capacity.answer);
+    expect(copied).toBe(moved.answer);
+  });
+
+  it('about which (n, capacity, first) states enqueue and dequeue can reach', () => {
+    const key = (s: RingState): string => `${s.n}:${s.cells.length}:${s.first}`;
+    const seen = new Set([key(emptyRing())]);
+    const queue: RingState[] = [emptyRing()];
+    while (queue.length) {
+      const state = queue.shift()!;
+      const steps = [...(state.n < 20 ? [enqueue(state, 1).state] : []), ...(state.n > 0 ? [dequeue(state).state] : [])];
+      for (const next of steps) {
+        if (seen.has(key(next))) continue;
+        seen.add(key(next));
+        queue.push(next);
+      }
+    }
+    const states = task3('read-states').parts[0];
+    if (states.kind !== 'rows') throw new Error('read-states should be a rows part');
+    for (const row of states.rows) {
+      const [, n, capacity, first] = row.label.match(/n = (\d+).*capacity = (\d+).*first = (\d+)/)!;
+      expect(seen.has(`${n}:${capacity}:${first}`) ? 0 : 1, row.label).toBe(row.answer);
+    }
+  });
+});
+
 describe('the week 4 answers agree with the simulated SinglyLinkedList', () => {
   const run = (ops: ListOp[]): ListState => ops.reduce((state, op) => runOp(state, op).after, emptyList());
 
@@ -264,5 +354,41 @@ describe('the week 4 answers agree with the simulated SinglyLinkedList', () => {
     const hops = (index: number): number => runOp(ten, { op: 'at', i: index }).steps.at(-1)!.hops;
     expect(hops(3)).toBe(numIn(week04Quiz, 'pointers-hops', 0));
     expect(ten.nodes.map((_, i) => hops(i)).reduce((a, b) => a + b, 0)).toBe(numIn(week04Quiz, 'pointers-hops', 1));
+  });
+});
+
+describe('the week 5 answers agree with the simulated DoublyLinkedList', () => {
+  const run = (ops: DoublyOp[]): ListState => ops.reduce((state, op) => runDoublyOp(state, op).after, emptyList());
+
+  it('about what the list holds after the traced calls', () => {
+    const state = run([
+      { op: 'pushBack', x: 1 },
+      { op: 'pushFront', x: 2 },
+      { op: 'insertAt', i: 1, x: 3 },
+      { op: 'popBack' },
+      { op: 'pushBack', x: 4 },
+    ]);
+    const [order, found] = task5('pointers-trace').parts;
+    if (order.kind !== 'seq' || found.kind !== 'num') throw new Error('pointers-trace should be a seq and a num');
+    expect(listValues(state).map(String)).toEqual(order.answer);
+    expect(Number(runDoublyOp(state, { op: 'find', x: 3 }).returned)).toBe(found.answer);
+  });
+
+  it('about which end nodeAt walks from', () => {
+    const ten = run(Array.from({ length: 10 }, (_, i) => ({ op: 'pushBack', x: i + 1 }) as DoublyOp));
+    const ends = task5('read-nodeat').parts[0];
+    if (ends.kind !== 'rows') throw new Error('read-nodeat should start with a rows part');
+    for (const row of ends.rows) {
+      const index = Number(row.label.match(/nodeAt\((\d+)\)/)![1]);
+      const said = runDoublyOp(ten, { op: 'at', i: index }).steps.find((step) => step.message.includes('затова тръгваме от'))!.message;
+      expect(said.includes('от края') ? 1 : 0, row.label).toBe(row.answer);
+    }
+  });
+
+  it('about how many pointer hops indexing costs', () => {
+    const ten = run(Array.from({ length: 10 }, (_, i) => ({ op: 'pushBack', x: i + 1 }) as DoublyOp));
+    const hops = (index: number): number => runDoublyOp(ten, { op: 'at', i: index }).steps.at(-1)!.hops;
+    expect(hops(7)).toBe(numIn(week05Quiz, 'read-nodeat', 1));
+    expect(ten.nodes.map((_, i) => hops(i)).reduce((a, b) => a + b, 0)).toBe(numIn(week05Quiz, 'read-nodeat', 2));
   });
 });

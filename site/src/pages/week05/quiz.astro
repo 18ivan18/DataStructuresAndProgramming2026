@@ -1,0 +1,20 @@
+---
+import Base from '../../layouts/Base.astro';
+import Quiz from '../../components/Quiz';
+import { week05Quiz } from '../../data/quizzes/week05';
+import { WEEKS, weekHref } from '../../data/weeks';
+
+const week = WEEKS.find((w) => w.n === 5)!;
+const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+const material = weekHref(week, base);
+---
+
+<Base title={week05Quiz.title} description={week05Quiz.lead} current={`${week.page}/quiz`}>
+  <header class="topic-head">
+    <p class="eyebrow">Седмица {week.n} · тест</p>
+    <h1>{week05Quiz.title}</h1>
+    <p class="links">{week05Quiz.lead}</p>
+    <p class="links"><a href={material}>← обратно към материала</a></p>
+  </header>
+  <Quiz quiz={week05Quiz} back={material} client:load />
+</Base>

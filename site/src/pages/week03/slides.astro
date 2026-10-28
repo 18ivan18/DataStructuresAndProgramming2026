@@ -1,0 +1,16 @@
+---
+import Base from '../../layouts/Base.astro';
+import Week03Deck from '../../components/Week03Deck';
+import { WEEKS, quizHref, weekHref } from '../../data/weeks';
+
+const week = WEEKS.find((w) => w.n === 3)!;
+const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+---
+
+<Base
+  title={`Слайдове: ${week.title}`}
+  description="Презентация към упражнението за седмица 3: FIFO, цикличният масив, свързаната опашка и std::queue, с интерактивните примери от бележките."
+  bare
+>
+  <Week03Deck notes={weekHref(week, base)} quiz={quizHref(week, base)} client:load />
+</Base>

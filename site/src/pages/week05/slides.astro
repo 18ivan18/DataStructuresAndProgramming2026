@@ -1,0 +1,16 @@
+---
+import Base from '../../layouts/Base.astro';
+import Week05Deck from '../../components/Week05Deck';
+import { WEEKS, quizHref, weekHref } from '../../data/weeks';
+
+const week = WEEKS.find((w) => w.n === 5)!;
+const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+---
+
+<Base
+  title={`Слайдове: ${week.title}`}
+  description="Презентация към упражнението за седмица 5: вторият указател, removeNode, цикличният списък и декът, с интерактивните примери от бележките."
+  bare
+>
+  <Week05Deck notes={weekHref(week, base)} quiz={quizHref(week, base)} client:load />
+</Base>
