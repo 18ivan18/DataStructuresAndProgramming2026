@@ -16,6 +16,10 @@ const VAR_CLASS: Record<string, string> = {
   prev: 'v-prev', previous: 'v-prev', slow: 'v-prev',
   curr: 'v-curr', current: 'v-curr', iter: 'v-curr', fast: 'v-last',
   next: 'v-tmp', node: 'v-new', toRemove: 'v-tmp', oldFirst: 'v-tmp', tmp: 'v-tmp', toBeDeleted: 'v-tmp',
+  cur: 'v-curr', mid: 'v-new', firstHalfEnd: 'v-new',
+  odd: 'v-prev', even: 'v-last', evenHead: 'v-head',
+  firstHalf: 'v-prev', secondHalf: 'v-last', firstHalfHead: 'v-head', secondHalfHead: 'v-head',
+  reversed: 'v-head', reversedEnd: 'v-last',
 };
 const varClass = (name: string) => VAR_CLASS[name] ?? 'v-tmp';
 

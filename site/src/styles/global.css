@@ -700,3 +700,38 @@ text.ld-nulls { fill: var(--ink-soft); font-weight: 400; }
   .sl-cover-grid .stack-view { display: none; }
   .deck-exit span { display: none; }
 }
+
+/* ===== week 7: trees ===== */
+.tree-diagram { width: 100%; height: auto; display: block; margin-top: 0.6rem; overflow: visible; font-family: var(--mono); }
+@media (max-width: 40rem) { .diagram-scroll .tree-diagram { min-width: 26rem; } }
+.tn-edge { fill: none; stroke: var(--ink-soft); stroke-width: 1.8; }
+.tn-stub path { fill: none; stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.tn-stub text { font-size: 12px; fill: var(--line); dominant-baseline: central; }
+.tn-node circle { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.6; transition: fill 0.2s, stroke 0.2s; }
+.tn-node text { text-anchor: middle; dominant-baseline: central; font-size: 13px; font-weight: 700; fill: var(--ink); }
+.tn-node.stack circle, .tn-node.queue circle { fill: color-mix(in srgb, var(--c-third) 16%, var(--bg)); stroke: var(--c-third); stroke-width: 2.6; }
+.tn-node.path circle { fill: color-mix(in srgb, var(--path) 16%, var(--bg)); stroke: var(--path); stroke-width: 2.6; }
+.tn-node.done circle { stroke: var(--path); stroke-width: 2.6; }
+.tn-node.visited circle { fill: var(--closed); stroke: var(--closed-ink); }
+.tn-node.visited text { fill: var(--closed-ink); }
+.tn-node.current circle { fill: var(--current); stroke: var(--current); stroke-width: 2.6; }
+.tn-node.current text { fill: #1b1d21; }
+.tn-badge circle { fill: var(--path); stroke: var(--bg); stroke-width: 1.5; }
+.tn-badge text { font-size: 9px; font-weight: 700; fill: #fff; }
+.tn-side { display: grid; gap: 0.9rem; align-content: start; }
+.queue-view { margin: 0; }
+.queue-view figcaption { font-size: 0.8rem; font-weight: 600; color: var(--ink-soft); margin-bottom: 0.3rem; }
+.queue-view .bfs-queue li { min-width: 1.5rem; text-align: center; }
+.queue-view .qv-empty { color: var(--ink-soft); border-style: dashed; }
+.qv-note { margin: 0.25rem 0 0; }
+.tn-out { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.4rem; margin: 0.7rem 0 0; font-size: 0.85rem; }
+.tn-out > span:first-child { font-size: 0.78rem; font-weight: 600; color: var(--ink-soft); }
+.tn-out code { font-size: 0.85rem; }
+.tn-legend { display: flex; flex-wrap: wrap; gap: 0.3rem 0.9rem; list-style: none; margin: 0.6rem 0 0; padding: 0; font-size: 0.78rem; color: var(--ink-soft); }
+.tn-legend li { display: inline-flex; align-items: center; gap: 0.35rem; }
+.tn-legend i { width: 0.85rem; height: 0.85rem; border-radius: 999px; background: var(--accent-soft); border: 1.6px solid var(--accent); }
+.tn-legend i.stack { background: color-mix(in srgb, var(--c-third) 16%, var(--bg)); border-color: var(--c-third); }
+.tn-legend i.current { background: var(--current); border-color: var(--current); }
+.tn-legend i.visited { background: var(--closed); border-color: var(--closed-ink); }
+.tn-legend i.path { background: color-mix(in srgb, var(--path) 16%, var(--bg)); border-color: var(--path); }
+.tn-note { margin: 0.8rem 0 0; padding: 0.6rem 0.8rem; border-radius: 8px; background: var(--accent-soft); font-size: 0.9rem; line-height: 1.6; }

@@ -7,6 +7,7 @@ export interface Week {
   folder: string;
   /** Route of the interactive page, when there is one. */
   page?: string;
+  implementation?: boolean;
   /** Whether the week has a quiz at <page>/quiz/. */
   quiz?: boolean;
   /** Whether the week has a slide deck at <page>/slides/. */
@@ -16,13 +17,13 @@ export interface Week {
 export const REPO = 'https://github.com/18ivan18/DataStructuresAndProgramming2026';
 
 export const WEEKS: Week[] = [
-  { n: 1, title: 'Преговор: указатели, big O, функции от по-висок ред', folder: 'week01', page: 'week01' },
+  { n: 1, title: 'Преговор: указатели, big O, функции от по-висок ред', folder: 'week01', page: 'week01', implementation: false },
   { n: 2, title: 'Структури от данни. Стек', folder: 'week02', page: 'week02', quiz: true, slides: true },
   { n: 3, title: 'Опашка', folder: 'week03', page: 'week03', quiz: true, slides: true },
   { n: 4, title: 'Свързан списък', folder: 'week04', page: 'week04', quiz: true, slides: true },
   { n: 5, title: 'Двусвързан списък', folder: 'week05', page: 'week05', quiz: true, slides: true },
-  { n: 6, title: 'Подготовка за контролно', folder: 'week06' },
-  { n: 7, title: 'Въведение в дърветата', folder: 'week07' },
+  { n: 6, title: 'Подготовка за контролно', folder: 'week06', page: 'week06', implementation: false, quiz: true, slides: true },
+  { n: 7, title: 'Въведение в дърветата', folder: 'week07', page: 'week07', implementation: false, quiz: true, slides: true },
   { n: 8, title: 'Двоично наредено дърво (BST)', folder: 'week08' },
   { n: 9, title: 'Итератори. Итератор на BST', folder: 'week09' },
   { n: 10, title: 'Балансирани дървета. AVL и червено-черни', folder: 'week10' },

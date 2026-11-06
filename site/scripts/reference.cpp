@@ -64,6 +64,48 @@ namespace w5s2 {
 #include "../../week05/solutions/2.cpp"
 }
 #undef private
+namespace w6s1 {
+#include "../../week06/solutions/1.cpp"
+}
+namespace w6s2 {
+#include "../../week06/solutions/2.cpp"
+}
+namespace w6s4 {
+#include "../../week06/solutions/4.cpp"
+}
+namespace w6s6 {
+#include "../../week06/solutions/6.cpp"
+}
+namespace w6s7 {
+#include "../../week06/solutions/7.cpp"
+}
+namespace w6s8 {
+#include "../../week06/solutions/8.cpp"
+}
+#include <queue>
+#include <stdexcept>
+#include <functional>
+namespace w7s1 {
+#include "../../week07/solutions/1.cpp"
+}
+namespace w7s2 {
+#include "../../week07/solutions/2.cpp"
+}
+namespace w7s3 {
+#include "../../week07/solutions/3.cpp"
+}
+namespace w7s4 {
+#include "../../week07/solutions/4.cpp"
+}
+namespace w7s5 {
+#include "../../week07/solutions/5.cpp"
+}
+namespace w7s6 {
+#include "../../week07/solutions/6.cpp"
+}
+namespace w7s7 {
+#include "../../week07/solutions/7.cpp"
+}
 #undef main
 #include <sstream>
 
@@ -428,6 +470,134 @@ int main()
                 std::cout << (q ? "," : "") << "[" << kind << "," << x << "," << r << "," << dq.first << "," << dq.n << "]";
             }
             std::cout << "]}";
+        }
+    }
+    std::cout << "]";
+
+    std::cout << ",\n\"week6\": [";
+    {
+        unsigned seed = 43;
+        auto rnd = [&](int m) { seed = seed * 1103515245u + 12345u; return (int)((seed >> 16) % m); };
+        auto toVec = [](auto *h) { std::vector<int> v; while (h) { v.push_back(h->val); h = h->next; } return v; };
+        auto printVec = [](const std::vector<int> &v) { std::string s = "["; for (size_t i = 0; i < v.size(); i++) s += (i ? "," : "") + std::to_string(v[i]); return s + "]"; };
+        for (int t = 0; t < 80; t++)
+        {
+            int n = 1 + rnd(9);
+            std::vector<int> a(n);
+            for (int i = 0; i < n; i++) a[i] = 1 + rnd(9);
+            int k = 1 + rnd(n), x = 1 + rnd(9);
+            std::vector<int> pal = a;
+            if (t % 3 == 0) for (int i = 0; i < n / 2; i++) pal[n - 1 - i] = pal[i];
+            w6s8::ListNode *sh = w6s8::listOf(a);
+            w6s8::shuffle(sh);
+            std::cout << (t ? "," : "") << "{\"values\": " << printVec(a)
+                      << ", \"k\": " << k << ", \"kGroup\": " << printVec(toVec(w6s1::reverseKGroup(w6s1::listOf(a), k)))
+                      << ", \"palindromeOf\": " << printVec(pal) << ", \"palindrome\": " << (w6s2::isPalindrome(w6s2::listOf(pal)) ? "true" : "false")
+                      << ", \"reorder\": " << printVec(toVec(w6s4::reorderList(w6s4::listOf(a))))
+                      << ", \"oddEven\": " << printVec(toVec(w6s6::oddEvenList(w6s6::listOf(a))))
+                      << ", \"x\": " << x << ", \"partition\": " << printVec(toVec(w6s7::partition(w6s7::listOf(a), x)))
+                      << ", \"shuffle\": " << printVec(toVec(sh)) << "}";
+        }
+    }
+    std::cout << "]";
+
+    std::cout << ",\n\"week7\": [";
+    {
+        const int NUL = -1000;
+        unsigned seed = 44;
+        auto rnd = [&](int m) { seed = seed * 1103515245u + 12345u; return (int)((seed >> 16) % m); };
+        auto printVec = [](const std::vector<int> &v) { std::string s = "["; for (size_t i = 0; i < v.size(); i++) s += (i ? "," : "") + std::to_string(v[i]); return s + "]"; };
+        auto printTokens = [&](const std::vector<int> &v) { std::string s = "["; for (size_t i = 0; i < v.size(); i++) s += std::string(i ? "," : "") + (v[i] == NUL ? "null" : std::to_string(v[i])); return s + "]"; };
+        auto printLevels = [&](const std::vector<std::vector<int>> &v) { std::string s = "["; for (size_t i = 0; i < v.size(); i++) s += std::string(i ? "," : "") + printVec(v[i]); return s + "]"; };
+        auto printStrings = [](const std::vector<std::string> &v) { std::string s = "["; for (size_t i = 0; i < v.size(); i++) s += std::string(i ? "," : "") + "\"" + v[i] + "\""; return s + "]"; };
+        auto build = [&](const std::vector<int> &a, auto make) {
+            using N = decltype(make(0));
+            N root = a.empty() || a[0] == NUL ? nullptr : make(a[0]);
+            std::queue<N> q;
+            if (root) q.push(root);
+            size_t at = 1;
+            while (!q.empty() && at < a.size())
+            {
+                N p = q.front();
+                q.pop();
+                if (at < a.size()) { int v = a[at++]; if (v != NUL) { p->left = make(v); q.push(p->left); } }
+                if (at < a.size()) { int v = a[at++]; if (v != NUL) { p->right = make(v); q.push(p->right); } }
+            }
+            return root;
+        };
+        for (int t = 0; t < 60; t++)
+        {
+            std::vector<int> a;
+            int n = 1 + rnd(12);
+            for (int i = 0; i < n; i++) a.push_back(i == 0 || rnd(4) ? 1 + rnd(9) : NUL);
+            std::cout << (t ? "," : "") << "{\"tokens\": " << printTokens(a)
+                      << ", \"inorder\": " << printVec(w7s1::inorderTraversal(build(a, [](int v) { return new w7s1::TreeNode(v); })))
+                      << ", \"inorderRec\": " << printVec(w7s1::inorderTraversalRec(build(a, [](int v) { return new w7s1::TreeNode(v); })))
+                      << ", \"paths\": " << printStrings(w7s2::binaryTreePaths(build(a, [](int v) { return new w7s2::TreeNode(v); })))
+                      << ", \"levels\": " << printLevels(w7s3::levelOrderTraversal(build(a, [](int v) { return new w7s3::TreeNode(v); })))
+                      << ", \"zigzag\": " << printLevels(w7s4::zigzagLevelOrder(build(a, [](int v) { return new w7s4::TreeNode(v); })))
+                      << ", \"right\": " << printVec(w7s5::rightSideView(build(a, [](int v) { return new w7s5::TreeNode(v); })))
+                      << "}";
+        }
+    }
+    std::cout << "]";
+
+    std::cout << ",\n\"week7expr\": [";
+    {
+        unsigned seed = 45;
+        auto rnd = [&](int m) { seed = seed * 1103515245u + 12345u; return (int)((seed >> 16) % m); };
+        std::function<std::string(int)> gen = [&](int depth) -> std::string {
+            std::string s;
+            int parts = 1 + rnd(3);
+            for (int i = 0; i < parts; i++)
+            {
+                if (i) s += std::string(1, "+-*/"[rnd(4)]);
+                if (depth > 0 && rnd(3) == 0) s += "(" + gen(depth - 1) + ")";
+                else s += std::string(1, (char)('1' + rnd(9)));
+            }
+            return s;
+        };
+        std::vector<std::string> cases = {"2-3/(5*2)+1", "3*4-2*5", "1+2+3+4+5", "7", "2*(3+4)", "(1+2)*(3-4)"};
+        while (cases.size() < 40)
+        {
+            std::string s = gen(2);
+            if (s.size() <= 20) cases.push_back(s);
+        }
+        for (size_t t = 0; t < cases.size(); t++)
+        {
+            w7s6::Node *root = w7s6::expTree(cases[t]);
+            std::cout << (t ? "," : "") << "{\"s\": \"" << cases[t] << "\", \"inorder\": \"" << w7s6::inorderTraversal(root) << "\", \"levels\": [";
+            std::vector<std::string> ls = w7s6::levels(root);
+            for (size_t i = 0; i < ls.size(); i++) std::cout << (i ? "," : "") << "\"" << ls[i] << "\"";
+            std::cout << "]}";
+            w7s6::freeTree(root);
+        }
+    }
+    std::cout << "]";
+
+    std::cout << ",\n\"week7gifts\": [";
+    {
+        unsigned seed = 46;
+        auto rnd = [&](int m) { seed = seed * 1103515245u + 12345u; return (int)((seed >> 16) % m); };
+        for (int t = 0; t < 40; t++)
+        {
+            int n = 1 + rnd(12);
+            std::vector<w7s7::Node *> nodes;
+            for (int i = 0; i < n; i++) nodes.push_back(new w7s7::Node(i));
+            std::string edges = "[";
+            for (int i = 1; i < n; i++)
+            {
+                int parent = rnd(i);
+                nodes[parent]->children.push_back(nodes[i]);
+                edges += std::string(i > 1 ? "," : "") + "[" + std::to_string(parent) + "," + std::to_string(i) + "]";
+            }
+            edges += "]";
+            std::vector<int> gifts(n, 0);
+            w7s7::countGifts(nodes[0], gifts);
+            std::cout << (t ? "," : "") << "{\"n\": " << n << ", \"edges\": " << edges << ", \"gifts\": [";
+            for (int i = 0; i < n; i++) std::cout << (i ? "," : "") << gifts[i];
+            std::cout << "]}";
+            for (int i = 0; i < n; i++) delete nodes[i];
         }
     }
     std::cout << "]";

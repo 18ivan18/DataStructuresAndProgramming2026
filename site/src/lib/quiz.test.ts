@@ -3,10 +3,13 @@ import { week02Quiz } from '../data/quizzes/week02';
 import { week03Quiz } from '../data/quizzes/week03';
 import { week04Quiz } from '../data/quizzes/week04';
 import { week05Quiz } from '../data/quizzes/week05';
+import { week06Quiz } from '../data/quizzes/week06';
+import { week07Quiz } from '../data/quizzes/week07';
 import { type ArrayStackState, type StackOp, applyOp, emptyStack, runOps } from './arrayStack';
 import { type DoublyOp, runDoublyOp } from './doubly';
 import { type ListOp, type ListState, emptyList, listValues, runOp } from './linked';
 import { type RingState, dequeue, emptyRing, enqueue, ringItems } from './queue';
+import { depths, giftsTrace, height, isLeaf, levelOrderTrace, parseEdges, parseLevelArray, size, traversalTrace, traversalValues } from './tree';
 import {
   type Answers,
   type Part,
@@ -112,6 +115,8 @@ describe.each([
   ['week 3', week03Quiz],
   ['week 4', week04Quiz],
   ['week 5', week05Quiz],
+  ['week 6', week06Quiz],
+  ['week 7', week07Quiz],
 ])('the %s quiz', (_name, quiz) => {
   it('gives every task a known skill and at least one part', () => {
     const ids = new Set(quiz.skills.map((s) => s.id));
@@ -178,6 +183,8 @@ const task = (id: string) => taskIn(week02Quiz, id);
 const task3 = (id: string) => taskIn(week03Quiz, id);
 const task4 = (id: string) => taskIn(week04Quiz, id);
 const task5 = (id: string) => taskIn(week05Quiz, id);
+const task6 = (id: string) => taskIn(week06Quiz, id);
+const task7 = (id: string) => taskIn(week07Quiz, id);
 
 const numIn = (quiz: Quiz, taskId: string, index: number): number => {
   const part = taskIn(quiz, taskId).parts[index];
@@ -247,6 +254,67 @@ describe('the answers agree with the simulated ArrayStack', () => {
     if (order.kind !== 'seq' || left.kind !== 'num') throw new Error('lifo-pops should be a seq and a num');
     expect(popped).toEqual(order.answer);
     expect(run.at(-1)!.state.items.length).toBe(left.answer);
+  });
+});
+
+describe('the week 6 answers agree with the code they are about', () => {
+  it('about how many pointer hops indexing a thousand elements costs', () => {
+    const values = Array.from({ length: 1000 }, (_, i) => i + 1);
+    const byIndex = values.reduce((sum, _, i) => sum + i, 0);
+    const [indexed, once] = task6('cost-indexing').parts;
+    if (indexed.kind !== 'num' || once.kind !== 'num') throw new Error('cost-indexing should be two nums');
+    expect(byIndex).toBe(indexed.answer);
+    expect(values.length - 1).toBe(once.answer);
+  });
+
+  it('about the smallest and largest n a ring of capacity 32 can hold', () => {
+    let s = emptyRing();
+    const seen = new Set<number>();
+    for (let i = 1; i <= 40; i++) {
+      s = enqueue(s, i).state;
+      if (s.cells.length === 32) seen.add(s.n);
+    }
+    while (s.n > 0) {
+      s = dequeue(s).state;
+      if (s.cells.length === 32) seen.add(s.n);
+    }
+    const [low, high] = task6('inv-ring').parts;
+    if (low.kind !== 'num' || high.kind !== 'num') throw new Error('inv-ring should be two nums');
+    expect(Math.min(...seen)).toBe(low.answer);
+    expect(Math.max(...seen)).toBe(high.answer);
+  });
+
+  it('about where the slow pointer of the middle-finding loop stops', () => {
+    const middle = (n: number): number => {
+      let slow = 0;
+      for (let fast = 0; fast < n && fast + 1 < n; fast += 2) slow++;
+      return slow;
+    };
+    const [six, seven] = task6('tech-middle').parts;
+    if (six.kind !== 'num' || seven.kind !== 'num') throw new Error('tech-middle should be two nums');
+    expect(middle(6)).toBe(six.answer);
+    expect(middle(7)).toBe(seven.answer);
+  });
+
+  it('about the order of the four lines of the reversal loop', () => {
+    const order = task6('ptr-reverse').parts[0];
+    if (order.kind !== 'seq') throw new Error('ptr-reverse should be a seq');
+    const values = [1, 2, 3, 4, 5];
+    const next: (number | null)[] = values.map((_, i) => (i + 1 < values.length ? i + 1 : null));
+    let prev: number | null = null;
+    let cur: number | null = 0;
+    let saved: number | null = null;
+    while (cur !== null) {
+      for (const line of order.answer) {
+        if (line === 'next = cur->next') saved = next[cur!];
+        else if (line === 'cur->next = prev') next[cur!] = prev;
+        else if (line === 'prev = cur') prev = cur;
+        else cur = saved;
+      }
+    }
+    const out: number[] = [];
+    for (let at = prev; at !== null; at = next[at]) out.push(values[at]);
+    expect(out).toEqual([...values].reverse());
   });
 });
 
@@ -390,5 +458,78 @@ describe('the week 5 answers agree with the simulated DoublyLinkedList', () => {
     const hops = (index: number): number => runDoublyOp(ten, { op: 'at', i: index }).steps.at(-1)!.hops;
     expect(hops(7)).toBe(numIn(week05Quiz, 'read-nodeat', 1));
     expect(ten.nodes.map((_, i) => hops(i)).reduce((a, b) => a + b, 0)).toBe(numIn(week05Quiz, 'read-nodeat', 2));
+  });
+});
+
+describe('the week 7 answers agree with the trees they are about', () => {
+  it('about the height, the leaves and the depth it counts', () => {
+    const tree = parseLevelArray('3 9 20 null null 15 7');
+    expect(numIn(week07Quiz, 'term-count', 0)).toBe(height(tree));
+    expect(numIn(week07Quiz, 'term-count', 1)).toBe([...tree.nodes.values()].filter((n) => isLeaf(tree, n.id)).length);
+    const seven = [...tree.nodes.values()].find((n) => n.val === '7')!;
+    expect(numIn(week07Quiz, 'term-count', 2)).toBe(depths(tree).get(seven.id));
+  });
+
+  it('about the three orders on one tree', () => {
+    const tree = parseLevelArray('1 2 3 4 5 null 6');
+    const [pre, inorder, post] = task7('trav-orders').parts;
+    if (pre.kind !== 'seq' || inorder.kind !== 'seq' || post.kind !== 'seq') throw new Error('trav-orders should be three seq parts');
+    expect(pre.answer).toEqual(traversalValues(tree, 'pre'));
+    expect(inorder.answer).toEqual(traversalValues(tree, 'in'));
+    expect(post.answer).toEqual(traversalValues(tree, 'post'));
+    for (const part of [pre, inorder, post]) expect([...part.tokens].sort()).toEqual([...part.answer].sort());
+  });
+
+  it('about what [1,null,2,3] describes', () => {
+    const tree = parseLevelArray('1 null 2 3');
+    const rows = task7('repr-read').parts[0];
+    if (rows.kind !== 'rows') throw new Error('repr-read should be a rows part');
+    const root = tree.nodes.get(tree.root!)!;
+    const right = tree.nodes.get(root.kids[1]!)!;
+    expect(right.val).toBe('2');
+    expect(root.kids[0]).toBeNull();
+    expect(right.kids[1]).toBeNull();
+    expect(height(tree)).toBe(3);
+    expect(traversalValues(tree, 'pre')).toEqual(['1', '2', '3']);
+    expect(traversalValues(parseLevelArray('1 2 null 3'), 'pre')).not.toEqual(traversalValues(tree, 'in'));
+    expect(rows.rows.map((r) => r.answer)).toEqual([0, 1, 1, 0, 0, 1]);
+  });
+
+  it('about what is seen from the right of [1,2,3,4]', () => {
+    const steps = [...levelOrderTrace(parseLevelArray('1 2 3 4'), 'right')];
+    const seen = steps[steps.length - 1].out;
+    expect(seen.length).toBe(numIn(week07Quiz, 'trav-right', 0));
+    const which = task7('trav-right').parts[1];
+    if (which.kind !== 'mc') throw new Error('trav-right should end with an mc part');
+    expect(which.options[which.answer].startsWith(seen[seen.length - 1])).toBe(true);
+  });
+
+  it('about the order of the lines of the iterative inorder', () => {
+    const order = task7('trav-iter').parts[0];
+    if (order.kind !== 'seq') throw new Error('trav-iter should be a seq part');
+    expect(order.answer).toEqual(order.tokens);
+    const steps = [...traversalTrace(parseLevelArray('4 2 6 1 3 5 7'), 'in', 'iter')];
+    const kinds = steps.slice(1, -1).map((s) => s.kind);
+    expect(kinds[0]).toBe('push');
+    expect(kinds.indexOf('visit')).toBeGreaterThan(0);
+    expect(kinds.filter((k) => k === 'visit')).toHaveLength(size(parseLevelArray('4 2 6 1 3 5 7')));
+  });
+
+  it('about the gifts of the example in the task', () => {
+    const tree = parseEdges('0 1, 0 2, 1 3, 1 4, 1 5, 1 6, 4 7, 7 8');
+    const steps = [...giftsTrace(tree)];
+    const gifts = steps[steps.length - 1].aux[1].items.map(Number);
+    const one = [...tree.nodes.values()].find((n) => n.val === '1')!;
+    expect(numIn(week07Quiz, 'rec-gifts', 0)).toBe(Number(steps[steps.length - 1].badges![one.id]));
+    expect(numIn(week07Quiz, 'rec-gifts', 1)).toBe(gifts.reduce((a, b) => a + b, 0));
+    expect(gifts.reduce((a, b) => a + b, 0)).toBe([...depths(tree).values()].reduce((a, b) => a + b, 0));
+  });
+
+  it('about the smallest and the largest height of 100 nodes', () => {
+    const n = 100;
+    let shortest = 0;
+    for (let h = 1; shortest === 0; h++) if (2 ** h - 1 >= n) shortest = h;
+    expect(numIn(week07Quiz, 'cost-height', 0)).toBe(shortest);
+    expect(numIn(week07Quiz, 'cost-height', 1)).toBe(n);
   });
 });

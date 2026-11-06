@@ -13,7 +13,7 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
   <header class="topic-head">
     <p class="eyebrow">Седмица {week.n}</p>
     <h1>{frontmatter.title}</h1>
-    <p class="links"><a href={`${folder}#readme`}>README</a> · <a href={`${folder}/implementation`}>Реализации</a>{week.quiz && <> · <a href={quizHref(week, base)}>Тест</a></>}{week.slides && <> · <a href={slidesHref(week, base)}>Слайдове</a></>}</p>
+    <p class="links"><a href={`${folder}#readme`}>README</a>{week.implementation !== false && <> · <a href={`${folder}/implementation`}>Реализации</a></>}{week.quiz && <> · <a href={quizHref(week, base)}>Тест</a></>}{week.slides && <> · <a href={slidesHref(week, base)}>Слайдове</a></>}</p>
   </header>
   <article class="prose">
     <slot />
