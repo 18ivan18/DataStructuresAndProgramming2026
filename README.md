@@ -25,8 +25,8 @@ _Материали, примерен код и задачи от упражне
 |  3. | **Опашка** | [week03](./week03) | [бележки](https://18ivan18.github.io/DataStructuresAndProgramming2026/week03/) | [тест](https://18ivan18.github.io/DataStructuresAndProgramming2026/week03/quiz/) | [слайдове](https://18ivan18.github.io/DataStructuresAndProgramming2026/week03/slides/) |
 |  4. | **Свързан списък** | [week04](./week04) | [бележки](https://18ivan18.github.io/DataStructuresAndProgramming2026/week04/) | [тест](https://18ivan18.github.io/DataStructuresAndProgramming2026/week04/quiz/) | [слайдове](https://18ivan18.github.io/DataStructuresAndProgramming2026/week04/slides/) |
 |  5. | **Двусвързан списък** | [week05](./week05) | [бележки](https://18ivan18.github.io/DataStructuresAndProgramming2026/week05/) | [тест](https://18ivan18.github.io/DataStructuresAndProgramming2026/week05/quiz/) | [слайдове](https://18ivan18.github.io/DataStructuresAndProgramming2026/week05/slides/) |
-|  6. | **Подготовка за контролно** | [week06](./week06) | — | — | — |
-|  7. | **Въведение в дърветата. Двоични и n-арни дървета** | [week07](./week07) | — | — | — |
+|  6. | **Подготовка за контролно** | [week06](./week06) | [бележки](https://18ivan18.github.io/DataStructuresAndProgramming2026/week06/) | [тест](https://18ivan18.github.io/DataStructuresAndProgramming2026/week06/quiz/) | [слайдове](https://18ivan18.github.io/DataStructuresAndProgramming2026/week06/slides/) |
+|  7. | **Въведение в дърветата. Двоични и n-арни дървета** | [week07](./week07) | [бележки](https://18ivan18.github.io/DataStructuresAndProgramming2026/week07/) | [тест](https://18ivan18.github.io/DataStructuresAndProgramming2026/week07/quiz/) | [слайдове](https://18ivan18.github.io/DataStructuresAndProgramming2026/week07/slides/) |
 |  8. | **Двоично наредено дърво (BST)** | [week08](./week08) | — | — | — |
 |  9. | **Итератори. Итератор на BST** | [week09](./week09) | — | — | — |
 | 10. | **Балансирани дървета. AVL и червено-черни** | [week10](./week10) | — | — | — |
