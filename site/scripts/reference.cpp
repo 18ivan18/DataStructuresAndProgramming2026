@@ -109,6 +109,42 @@ namespace w7s6 {
 namespace w7s7 {
 #include "../../week07/solutions/7.cpp"
 }
+namespace w7s8 {
+#include "../../week07/solutions/8.cpp"
+}
+// Every standard header the week 8 solutions use, pulled in before the namespaces so that
+// their own #includes are no-ops and nothing from std lands inside a namespace.
+#include <algorithm>
+#include <sstream>
+#include <stack>
+#include <string>
+namespace w8s1 {
+#include "../../week08/solutions/1.cpp"
+}
+namespace w8s2 {
+#include "../../week08/solutions/2.cpp"
+}
+namespace w8s3 {
+#include "../../week08/solutions/3.cpp"
+}
+namespace w8s4 {
+#include "../../week08/solutions/4.cpp"
+}
+namespace w8s5 {
+#include "../../week08/solutions/5.cpp"
+}
+namespace w8s6 {
+#include "../../week08/solutions/6.cpp"
+}
+namespace w8s7 {
+#include "../../week08/solutions/7.cpp"
+}
+namespace w8s8 {
+#include "../../week08/solutions/8.cpp"
+}
+namespace w8s9 {
+#include "../../week08/solutions/9.cpp"
+}
 #undef main
 #include <sstream>
 
@@ -538,13 +574,17 @@ int main()
             int n = 1 + rnd(12);
             for (int i = 0; i < n; i++) a.push_back(i == 0 || rnd(4) ? 1 + rnd(9) : NUL);
             std::cout << (t ? "," : "") << "{\"tokens\": " << printTokens(a)
-                      << ", \"inorder\": " << printVec(w7s1::inorderTraversal(build(a, [](int v) { return new w7s1::TreeNode(v); })))
-                      << ", \"inorderRec\": " << printVec(w7s1::inorderTraversalRec(build(a, [](int v) { return new w7s1::TreeNode(v); })))
-                      << ", \"paths\": " << printStrings(w7s2::binaryTreePaths(build(a, [](int v) { return new w7s2::TreeNode(v); })))
-                      << ", \"levels\": " << printLevels(w7s3::levelOrderTraversal(build(a, [](int v) { return new w7s3::TreeNode(v); })))
-                      << ", \"zigzag\": " << printLevels(w7s4::zigzagLevelOrder(build(a, [](int v) { return new w7s4::TreeNode(v); })))
-                      << ", \"right\": " << printVec(w7s5::rightSideView(build(a, [](int v) { return new w7s5::TreeNode(v); })))
-                      << "}";
+                      << ", \"inorder\": " << printVec(w7s2::inorderTraversal(build(a, [](int v) { return new w7s2::TreeNode(v); })))
+                      << ", \"inorderRec\": " << printVec(w7s2::inorderTraversalRec(build(a, [](int v) { return new w7s2::TreeNode(v); })))
+                      << ", \"paths\": " << printStrings(w7s3::binaryTreePaths(build(a, [](int v) { return new w7s3::TreeNode(v); })))
+                      << ", \"levels\": " << printLevels(w7s4::levelOrderTraversal(build(a, [](int v) { return new w7s4::TreeNode(v); })))
+                      << ", \"zigzag\": " << printLevels(w7s5::zigzagLevelOrder(build(a, [](int v) { return new w7s5::TreeNode(v); })))
+                      << ", \"right\": " << printVec(w7s6::rightSideView(build(a, [](int v) { return new w7s6::TreeNode(v); })));
+            std::vector<std::string> toks;
+            for (int v : a) toks.push_back(v == NUL ? "null" : std::to_string(v));
+            w7s1::TreeNode *built = w7s1::buildTree(toks);
+            std::cout << ", \"levelArray\": " << printStrings(w7s1::levelArray(built)) << "}";
+            w7s1::freeTree(built);
         }
     }
     std::cout << "]";
@@ -572,12 +612,12 @@ int main()
         }
         for (size_t t = 0; t < cases.size(); t++)
         {
-            w7s6::Node *root = w7s6::expTree(cases[t]);
-            std::cout << (t ? "," : "") << "{\"s\": \"" << cases[t] << "\", \"inorder\": \"" << w7s6::inorderTraversal(root) << "\", \"levels\": [";
-            std::vector<std::string> ls = w7s6::levels(root);
+            w7s7::Node *root = w7s7::expTree(cases[t]);
+            std::cout << (t ? "," : "") << "{\"s\": \"" << cases[t] << "\", \"inorder\": \"" << w7s7::inorderTraversal(root) << "\", \"levels\": [";
+            std::vector<std::string> ls = w7s7::levels(root);
             for (size_t i = 0; i < ls.size(); i++) std::cout << (i ? "," : "") << "\"" << ls[i] << "\"";
             std::cout << "]}";
-            w7s6::freeTree(root);
+            w7s7::freeTree(root);
         }
     }
     std::cout << "]";
@@ -589,8 +629,8 @@ int main()
         for (int t = 0; t < 40; t++)
         {
             int n = 1 + rnd(12);
-            std::vector<w7s7::Node *> nodes;
-            for (int i = 0; i < n; i++) nodes.push_back(new w7s7::Node(i));
+            std::vector<w7s8::Node *> nodes;
+            for (int i = 0; i < n; i++) nodes.push_back(new w7s8::Node(i));
             std::string edges = "[";
             for (int i = 1; i < n; i++)
             {
@@ -600,11 +640,166 @@ int main()
             }
             edges += "]";
             std::vector<int> gifts(n, 0);
-            w7s7::countGifts(nodes[0], gifts);
+            w7s8::countGifts(nodes[0], gifts);
             std::cout << (t ? "," : "") << "{\"n\": " << n << ", \"edges\": " << edges << ", \"gifts\": [";
             for (int i = 0; i < n; i++) std::cout << (i ? "," : "") << gifts[i];
             std::cout << "]}";
             for (int i = 0; i < n; i++) delete nodes[i];
+        }
+    }
+    std::cout << "]";
+
+    // ---------- week 8 ----------
+    // Random trees, most of them not ordered: what solutions/1.cpp says about each.
+    std::cout << ",\n\"week8valid\": [";
+    {
+        const int NUL = -1000;
+        unsigned seed = 47;
+        auto rnd = [&](int m) { seed = seed * 1103515245u + 12345u; return (int)((seed >> 16) % m); };
+        auto printTokens = [&](const std::vector<int> &v) { std::string s = "["; for (size_t i = 0; i < v.size(); i++) s += std::string(i ? "," : "") + (v[i] == NUL ? "null" : std::to_string(v[i])); return s + "]"; };
+        auto build = [&](const std::vector<int> &a, auto make) {
+            using N = decltype(make(0));
+            N root = a.empty() || a[0] == NUL ? nullptr : make(a[0]);
+            std::queue<N> q;
+            if (root) q.push(root);
+            size_t at = 1;
+            while (!q.empty() && at < a.size())
+            {
+                N p = q.front();
+                q.pop();
+                if (at < a.size()) { int v = a[at++]; if (v != NUL) { p->left = make(v); q.push(p->left); } }
+                if (at < a.size()) { int v = a[at++]; if (v != NUL) { p->right = make(v); q.push(p->right); } }
+            }
+            return root;
+        };
+        // A few trees that are ordered by construction, so the true case is covered too.
+        std::vector<std::vector<int>> cases = {
+            {2, 1, 3}, {5, 1, 4, NUL, NUL, 3, 6}, {10, 5, 15, 1, 12}, {2, 2}, {1}, {},
+            {5, 3, 8, 1, 4, 7, 9}, {8, 4, 12, 2, 6, 10, 14}, {1, NUL, 2, NUL, 3},
+        };
+        while (cases.size() < 50)
+        {
+            std::vector<int> a;
+            int n = 1 + rnd(10);
+            for (int i = 0; i < n; i++) a.push_back(i == 0 || rnd(5) ? 1 + rnd(20) : NUL);
+            cases.push_back(a);
+        }
+        for (size_t t = 0; t < cases.size(); t++)
+        {
+            w8s1::TreeNode *root = build(cases[t], [](int v) { return new w8s1::TreeNode(v); });
+            std::cout << (t ? "," : "") << "{\"tokens\": " << printTokens(cases[t]) << ", \"valid\": " << (w8s1::isValidBST(root) ? "true" : "false") << "}";
+            w8s1::freeTree(root);
+        }
+    }
+    std::cout << "]";
+
+    // Real search trees, built by inserting distinct values in a random order.
+    std::cout << ",\n\"week8\": [";
+    {
+        unsigned seed = 48;
+        auto rnd = [&](int m) { seed = seed * 1103515245u + 12345u; return (int)((seed >> 16) % m); };
+        auto printVec = [](const std::vector<int> &v) { std::string s = "["; for (size_t i = 0; i < v.size(); i++) s += (i ? "," : "") + std::to_string(v[i]); return s + "]"; };
+        auto printStrings = [](const std::vector<std::string> &v) { std::string s = "["; for (size_t i = 0; i < v.size(); i++) s += std::string(i ? "," : "") + "\"" + v[i] + "\""; return s + "]"; };
+        auto bstOf = [](const std::vector<int> &vals, auto make) {
+            using N = decltype(make(0));
+            N root = nullptr;
+            for (int v : vals)
+            {
+                if (!root) { root = make(v); continue; }
+                N at = root;
+                for (;;)
+                {
+                    if (v < at->val) { if (!at->left) { at->left = make(v); break; } at = at->left; }
+                    else { if (!at->right) { at->right = make(v); break; } at = at->right; }
+                }
+            }
+            return root;
+        };
+        auto levelOf = [](auto root) {
+            std::vector<std::string> out;
+            if (!root) return out;
+            std::queue<decltype(root)> q;
+            q.push(root);
+            while (!q.empty())
+            {
+                auto x = q.front();
+                q.pop();
+                if (!x) { out.push_back("null"); continue; }
+                out.push_back(std::to_string(x->val));
+                q.push(x->left);
+                q.push(x->right);
+            }
+            while (!out.empty() && out.back() == "null") out.pop_back();
+            return out;
+        };
+        std::vector<std::vector<int>> orders = {
+            {2, 1, 3}, {5, 3, 8, 2, 4, 7}, {4, 2, 7, 1, 3}, {40, 20, 60, 10, 30, 50, 70},
+            {5, 3, 6, 2, 4, 7}, {7, 3, 15, 9, 20}, {1, 2, 3, 4, 5}, {5, 4, 3, 2, 1}, {1},
+        };
+        while (orders.size() < 50)
+        {
+            int n = 1 + rnd(9);
+            std::vector<int> vals;
+            for (int i = 0, v = 1; i < n; i++) { vals.push_back(v); v += 1 + rnd(3); }
+            for (int i = n - 1; i > 0; i--) std::swap(vals[i], vals[rnd(i + 1)]);
+            orders.push_back(vals);
+        }
+        for (size_t t = 0; t < orders.size(); t++)
+        {
+            const std::vector<int> &vals = orders[t];
+            int n = (int)vals.size();
+            int k = 1 + rnd(n);
+            int find = rnd(2) ? vals[rnd(n)] : 1000 + rnd(5);
+            int del = rnd(4) ? vals[rnd(n)] : 1000 + rnd(5);
+            int add = 1000 + rnd(50);
+
+            w8s2::TreeNode *forKth = bstOf(vals, [](int v) { return new w8s2::TreeNode(v); });
+            w8s3::TreeNode *forSer = bstOf(vals, [](int v) { return new w8s3::TreeNode(v); });
+            w8s5::TreeNode *forFind = bstOf(vals, [](int v) { return new w8s5::TreeNode(v); });
+            w8s6::TreeNode *forAdd = bstOf(vals, [](int v) { return new w8s6::TreeNode(v); });
+            w8s7::TreeNode *forDel = bstOf(vals, [](int v) { return new w8s7::TreeNode(v); });
+            w8s8::TreeNode *forIter = bstOf(vals, [](int v) { return new w8s8::TreeNode(v); });
+
+            std::vector<int> sortedValues;
+            w8s2::inorder(forKth, sortedValues);
+            std::vector<w8s4::ListNode *> listNodes;
+            w8s4::TreeNode *balanced = w8s4::sortedListToBST(w8s4::listOf(sortedValues, listNodes));
+
+            std::vector<int> walked;
+            w8s8::BSTIterator it(forIter);
+            while (it.hasNext()) walked.push_back(it.next());
+
+            w8s5::TreeNode *found = w8s5::searchBST(forFind, find);
+            // Both return the (possibly new) root: deleteNode frees the node it removes, so the
+            // tree has to be freed through what came back, never through the old pointer.
+            w8s6::TreeNode *afterAdd = w8s6::insertIntoBST(forAdd, add);
+            w8s7::TreeNode *afterDel = w8s7::deleteNode(forDel, del);
+            std::string serialized = w8s3::serialize(forSer);
+            std::vector<std::string> tokens;
+            {
+                std::istringstream parts(serialized);
+                for (std::string word; parts >> word;) tokens.push_back(word);
+            }
+
+            std::cout << (t ? "," : "") << "{\"order\": " << printVec(vals)
+                      << ", \"tokens\": " << printStrings(levelOf(forKth))
+                      << ", \"sorted\": " << printVec(sortedValues)
+                      << ", \"k\": " << k << ", \"kth\": " << w8s2::kthSmallestStack(forKth, k)
+                      << ", \"preorder\": " << printStrings(tokens)
+                      << ", \"find\": " << find << ", \"found\": " << (found ? "true" : "false")
+                      << ", \"insert\": " << add << ", \"afterInsert\": " << printStrings(levelOf(afterAdd))
+                      << ", \"del\": " << del << ", \"afterDelete\": " << printStrings(levelOf(afterDel))
+                      << ", \"balanced\": " << printStrings(levelOf(balanced))
+                      << ", \"walked\": " << printVec(walked) << "}";
+
+            w8s2::freeTree(forKth);
+            w8s3::freeTree(forSer);
+            w8s5::freeTree(forFind);
+            w8s6::freeTree(afterAdd);
+            w8s7::freeTree(afterDel);
+            w8s8::freeTree(forIter);
+            w8s4::freeTree(balanced);
+            w8s4::freeNodes(listNodes);
         }
     }
     std::cout << "]";

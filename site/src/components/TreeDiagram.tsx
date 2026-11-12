@@ -21,6 +21,7 @@ export function TreeDiagram({
   badges,
   stubs = true,
   minWidth = 0,
+  minHeight = 0,
 }: {
   nodes: TNode[];
   cells: Map<number, Cell>;
@@ -29,6 +30,8 @@ export function TreeDiagram({
   badges?: Record<number, string>;
   stubs?: boolean;
   minWidth?: number;
+  /** Keeps the box from shrinking between steps of a tree that is still being built. */
+  minHeight?: number;
 }): ReactElement {
   const shown = nodes.filter((n) => cells.has(n.id));
   const here = new Set(shown.map((n) => n.id));
@@ -42,7 +45,7 @@ export function TreeDiagram({
   const minX = Math.min(...xs, 40) - R - 20;
   const maxX = Math.max(minWidth + minX, Math.max(...xs, 40) + R + 20);
   const minY = Math.min(...ys, 34) - R - 16;
-  const maxY = Math.max(...ys, 34) + R + 18;
+  const maxY = Math.max(minY + minHeight, Math.max(...ys, 34) + R + 18);
 
   return (
     <div className="diagram-scroll">

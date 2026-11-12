@@ -83,7 +83,7 @@ const SLIDES = (notes: string, quiz: string): Slide[] => [
           <div>
             <pre>{'template <typename T>\nstruct NodeFull\n{\n    T data;\n\n    std::vector<NodeFull<T> *> children;\n};'}</pre>
             <p className="muted small">
-              N-ично: вектор от деца. Рекурсията става цикъл по <code>children</code>.
+              N-арно: вектор от деца. Рекурсията става цикъл по <code>children</code>.
             </p>
           </div>
         </div>
@@ -109,6 +109,13 @@ const SLIDES = (notes: string, quiz: string): Slide[] => [
         </p>
       </>
     ),
+  },
+  {
+    id: 'slide-build',
+    title: 'Построяването е същата опашка',
+    badge: 'Пробвай',
+    lede: 'Обхождането по нива вади възел и чете децата му; построяването вади възел и създава децата му от следващите две клетки. Пусни двата записа един след друг.',
+    content: <TreeTaskTrace task="build" />,
   },
   {
     id: 'slide-orders',
@@ -182,7 +189,7 @@ const SLIDES = (notes: string, quiz: string): Slide[] => [
           </tbody>
         </table>
         <p className="muted small">
-          Отгоре надолу носиш контекст в параметър (пътя дотук); отдолу нагоре връщаш отговор от всяко поддърво. Задача 2 е вторият вид.
+          Отгоре надолу носиш контекст в параметър (пътя дотук); отдолу нагоре връщаш отговор от всяко поддърво. Задача 3 е вторият вид.
         </p>
       </>
     ),
@@ -220,31 +227,6 @@ const SLIDES = (notes: string, quiz: string): Slide[] => [
           Дърво с n възела е високо между ⌈log₂(n + 1)⌉ и n. Затова в обосновка се пише <b>O(h)</b>, а не O(log n) — логаритъмът идва чак с гаранция за
           балансираност.
         </p>
-      </>
-    ),
-  },
-  {
-    id: 'slide-traps',
-    title: 'Петте капана',
-    content: (
-      <>
-        <ol>
-          <li>
-            Проверката за <code>nullptr</code> е първият ред. Празното дърво е валиден вход.
-          </li>
-          <li>
-            Листо е <code>!node-&gt;left &amp;&amp; !node-&gt;right</code>. Възелът с едно дете е най-често забравяната ветка.
-          </li>
-          <li>
-            При BFS <code>levelSize</code> се запомня <b>преди</b> вътрешния цикъл — иначе двете нива се сливат.
-          </li>
-          <li>
-            Децата влизат в опашката винаги отляво надясно. Зиг-загът сменя само къде се записва стойността.
-          </li>
-          <li>
-            <code>delete</code> само в postorder: след него полетата на възела са чужда памет.
-          </li>
-        </ol>
       </>
     ),
   },

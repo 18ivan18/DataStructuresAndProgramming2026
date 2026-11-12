@@ -717,6 +717,12 @@ text.ld-nulls { fill: var(--ink-soft); font-weight: 400; }
 .tn-node.current circle { fill: var(--current); stroke: var(--current); stroke-width: 2.6; }
 .tn-node.current text { fill: #1b1d21; }
 .tn-badge circle { fill: var(--path); stroke: var(--bg); stroke-width: 1.5; }
+.tn-node.bad circle { fill: color-mix(in srgb, var(--bad) 20%, var(--bg)); stroke: var(--bad); stroke-width: 2.6; }
+.tn-node.bad text { fill: var(--bad); }
+.bst-rows { display: flex; flex-wrap: wrap; gap: 0.6rem 1.6rem; margin-top: 0.7rem; }
+.bst-shape { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1.2rem; align-items: start; margin-top: 0.8rem; }
+.bst-facts { list-style: none; margin: 0.6rem 0 0; padding: 0; display: grid; gap: 0.3rem; font-size: 0.88rem; }
+.bst-facts b { font-family: var(--mono); }
 .tn-badge text { font-size: 9px; font-weight: 700; fill: #fff; }
 .tn-side { display: grid; gap: 0.9rem; align-content: start; }
 .queue-view { margin: 0; }

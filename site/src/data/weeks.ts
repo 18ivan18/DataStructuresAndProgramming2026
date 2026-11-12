@@ -24,7 +24,7 @@ export const WEEKS: Week[] = [
   { n: 5, title: 'Двусвързан списък', folder: 'week05', page: 'week05', quiz: true, slides: true },
   { n: 6, title: 'Подготовка за контролно', folder: 'week06', page: 'week06', implementation: false, quiz: true, slides: true },
   { n: 7, title: 'Въведение в дърветата', folder: 'week07', page: 'week07', implementation: false, quiz: true, slides: true },
-  { n: 8, title: 'Двоично наредено дърво (BST)', folder: 'week08' },
+  { n: 8, title: 'Двоично наредено дърво (BST)', folder: 'week08', page: 'week08', quiz: true, slides: true },
   { n: 9, title: 'Итератори. Итератор на BST', folder: 'week09' },
   { n: 10, title: 'Балансирани дървета. AVL и червено-черни', folder: 'week10' },
   { n: 11, title: 'Хеш таблици', folder: 'week11' },

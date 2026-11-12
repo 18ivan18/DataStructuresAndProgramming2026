@@ -10,7 +10,7 @@ export interface Tree {
   binary: boolean;
 }
 
-export type Mark = 'current' | 'stack' | 'queue' | 'visited' | 'path' | 'done';
+export type Mark = 'current' | 'stack' | 'queue' | 'visited' | 'path' | 'done' | 'bad';
 
 export interface AuxPanel {
   label: string;
@@ -31,6 +31,9 @@ export interface TreeStep {
   badges?: Record<number, string>;
   levels?: string[][];
   paths?: string[];
+  /** The input, one token per cell, with `at` the cell being read. */
+  tape?: string[];
+  at?: number;
 }
 
 export interface TreeRun {
@@ -44,12 +47,16 @@ export function emptyTree(binary = true): Tree {
   return { nodes: new Map(), root: null, binary };
 }
 
-export function parseLevelArray(text: string): Tree {
-  const tokens = text
+export function levelTokens(text: string): string[] {
+  return text
     .replace(/[[\]]/g, ' ')
     .split(/[\s,]+/)
     .filter(Boolean)
     .slice(0, 31);
+}
+
+export function parseLevelArray(text: string): Tree {
+  const tokens = levelTokens(text);
   const tree = emptyTree(true);
   if (!tokens.length || NIL.has(tokens[0].toLowerCase())) return tree;
 
@@ -186,7 +193,154 @@ const snapshot = (tree: Tree): TNode[] => [...tree.nodes.values()].map((n) => ({
 
 const label = (tree: Tree, id: number): string => tree.nodes.get(id)!.val;
 
-/* ---------- task 1: preorder, inorder and postorder (solutions/1.cpp) ---------- */
+/* ---------- task 1: the tree of a level order array (solutions/1.cpp) ---------- */
+
+/** The level order array of a tree, without the trailing nulls — the inverse of parseLevelArray. */
+export function levelArray(tree: Tree): string[] {
+  if (tree.root === null) return [];
+  const out: string[] = [];
+  const queue: (number | null)[] = [tree.root];
+  while (queue.length) {
+    const id = queue.shift()!;
+    if (id === null) {
+      out.push('null');
+      continue;
+    }
+    const node = tree.nodes.get(id)!;
+    out.push(node.val);
+    queue.push(node.kids[0] ?? null, node.kids[1] ?? null);
+  }
+  while (out.length && out[out.length - 1] === 'null') out.pop();
+  return out;
+}
+
+export function* buildTrace(text: string): Generator<TreeStep> {
+  const tokens = levelTokens(text);
+  const tree = emptyTree(true);
+  const queue: number[] = [];
+  const filled: number[] = [];
+  let next = 1;
+
+  const nil = (token: string): boolean => NIL.has(token.toLowerCase());
+  const panel = (): AuxPanel[] => [{ label: 'опашка от родители', items: queue.map((id) => label(tree, id)), shape: 'queue' }];
+  const marks = (current: number | null, parent: number | null): Record<number, Mark> => {
+    const map: Record<number, Mark> = {};
+    filled.forEach((id) => (map[id] = 'visited'));
+    queue.forEach((id) => (map[id] = 'queue'));
+    if (parent !== null) map[parent] = 'path';
+    if (current !== null) map[current] = 'current';
+    return map;
+  };
+  const make = (val: string): number => {
+    const id = next++;
+    tree.nodes.set(id, { id, val, kids: [null, null] });
+    return id;
+  };
+
+  if (!tokens.length || nil(tokens[0])) {
+    yield {
+      kind: 'ok',
+      message: tokens.length ? 'Първият елемент е null: коренът липсва, значи дървото е празно.' : 'Празен масив: няма корен, значи няма дърво.',
+      marks: {},
+      aux: [],
+      out: [],
+      nodes: [],
+      tape: tokens,
+      at: 0,
+    };
+    return;
+  }
+
+  yield {
+    kind: 'start',
+    message: 'Четем масива отляво надясно. Опашката пази възлите, чиито две клетки още не са прочетени — същата опашка като при обхождането по нива.',
+    marks: {},
+    aux: panel(),
+    out: [],
+    nodes: [],
+    tape: tokens,
+    at: 0,
+  };
+
+  const root = make(tokens[0]);
+  tree.root = root;
+  queue.push(root);
+  yield {
+    kind: 'push',
+    message: `Първият елемент е коренът: създаваме ${tokens[0]} и го слагаме в опашката.`,
+    marks: marks(root, null),
+    aux: panel(),
+    out: [],
+    nodes: snapshot(tree),
+    tape: tokens,
+    at: 0,
+  };
+
+  let at = 1;
+  while (queue.length && at < tokens.length) {
+    const parent = queue.shift()!;
+    const me = label(tree, parent);
+    yield {
+      kind: 'pop',
+      message: `Вадим ${me} от опашката: следващите (най-много) две клетки са неговото ляво и дясно дете.`,
+      marks: marks(null, parent),
+      aux: panel(),
+      out: [],
+      nodes: snapshot(tree),
+      tape: tokens,
+      at,
+    };
+
+    for (const slot of [0, 1] as const) {
+      if (at >= tokens.length) break;
+      const token = tokens[at];
+      const side = slot === 0 ? 'ляво' : 'дясно';
+      if (nil(token)) {
+        yield {
+          kind: 'keep',
+          message: `Клетка ${at} е null: ${me} няма ${side} дете. Не създаваме възел и не слагаме нищо в опашката — затова децата на null никога не се изброяват.`,
+          marks: marks(null, parent),
+          aux: panel(),
+          out: [],
+          nodes: snapshot(tree),
+          tape: tokens,
+          at,
+        };
+        at++;
+        continue;
+      }
+      const kid = make(token);
+      tree.nodes.get(parent)!.kids[slot] = kid;
+      queue.push(kid);
+      yield {
+        kind: 'push',
+        message: `Клетка ${at} е ${token}: става ${side} дете на ${me} и влиза в опашката — и неговите две клетки ще дойдат на свой ред.`,
+        marks: marks(kid, parent),
+        aux: panel(),
+        out: [],
+        nodes: snapshot(tree),
+        tape: tokens,
+        at,
+      };
+      at++;
+    }
+    filled.push(parent);
+  }
+
+  queue.length = 0;
+  yield {
+    kind: 'ok',
+    message: `Масивът свърши: дървото е готово. Обратно по нива: [${levelArray(tree).join(', ')}]. Едно четене на масива, O(n) време и O(w) памет за опашката.`,
+    marks: marks(null, null),
+    aux: panel(),
+    out: [],
+    nodes: snapshot(tree),
+    tape: tokens,
+    at: tokens.length,
+  };
+}
+
+/* ---------- task 2: preorder, inorder and postorder (solutions/2.cpp) ---------- */
 
 export type Order = 'pre' | 'in' | 'post';
 export type Mode = 'rec' | 'iter';
@@ -313,7 +467,7 @@ export function* traversalTrace(tree: Tree, order: Order, mode: Mode): Generator
   };
 }
 
-/* ---------- tasks 3, 4, 5: breadth first, zigzag and the right side view ---------- */
+/* ---------- tasks 4, 5, 6: breadth first, zigzag and the right side view ---------- */
 
 export type LevelMode = 'levels' | 'zigzag' | 'right';
 
@@ -416,7 +570,7 @@ export function* levelOrderTrace(tree: Tree, mode: LevelMode): Generator<TreeSte
   };
 }
 
-/* ---------- task 2: every path from the root to a leaf (solutions/2.cpp) ---------- */
+/* ---------- task 3: every path from the root to a leaf (solutions/3.cpp) ---------- */
 
 export function* pathsTrace(tree: Tree): Generator<TreeStep> {
   const frames: number[] = [];
@@ -508,7 +662,7 @@ export function* pathsTrace(tree: Tree): Generator<TreeStep> {
   };
 }
 
-/* ---------- task 7: how many gifts each manager buys (solutions/7.cpp) ---------- */
+/* ---------- task 8: how many gifts each manager buys (solutions/8.cpp) ---------- */
 
 export function* giftsTrace(tree: Tree): Generator<TreeStep> {
   const frames: number[] = [];
@@ -592,7 +746,7 @@ export function* giftsTrace(tree: Tree): Generator<TreeStep> {
   };
 }
 
-/* ---------- task 6: the expression tree of an infix string (solutions/6.cpp) ---------- */
+/* ---------- task 7: the expression tree of an infix string (solutions/7.cpp) ---------- */
 
 const PRIO: Record<string, number> = { '(': 1, '+': 2, '-': 2, '*': 3, '/': 3 };
 

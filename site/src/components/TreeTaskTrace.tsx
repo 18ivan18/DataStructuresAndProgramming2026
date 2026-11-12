@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { ReactElement } from 'react';
 import {
+  buildTrace,
   exprTreeTrace,
   giftsTrace,
   layout,
@@ -17,12 +18,14 @@ import {
 } from '../lib/tree';
 import { QueueView, TreeDiagram } from './TreeDiagram';
 import { StackView } from './StackView';
+import { TokenTape } from './TokenTape';
 import { TracePanel } from './TracePanel';
 import { useStepper } from './useStepper';
 
-type Task = 'traverse' | 'levels' | 'zigzag' | 'right' | 'paths' | 'expr' | 'gifts';
+type Task = 'traverse' | 'levels' | 'zigzag' | 'right' | 'paths' | 'expr' | 'gifts' | 'build';
 
 const DEFAULT_INPUT: Record<Task, string> = {
+  build: '1 null 2 3',
   traverse: '1 null 2 3',
   levels: '3 9 20 null null 15 7',
   zigzag: '3 9 20 null null 15 7',
@@ -33,6 +36,7 @@ const DEFAULT_INPUT: Record<Task, string> = {
 };
 
 const PRESETS: Partial<Record<Task, string[]>> = {
+  build: ['1 null 2 3', '1 2 null 3', '3 9 20 null null 15 7', '1 2 3 4 5 6 7', '1 2'],
   traverse: ['1 null 2 3', '1 2 3 4 5 null 6', '1', '1 2'],
   levels: ['3 9 20 null null 15 7', '1 2 3 4 5 6 7', '1 2 null 3 null 4'],
   zigzag: ['3 9 20 null null 15 7', '1 2 3 4 5 6 7'],
@@ -43,6 +47,7 @@ const PRESETS: Partial<Record<Task, string[]>> = {
 };
 
 const INPUT_LABEL: Record<Task, string> = {
+  build: 'масив по нива',
   traverse: 'дърво',
   levels: 'дърво',
   zigzag: 'дърво',
@@ -75,13 +80,15 @@ export default function TreeTaskTrace({ task }: { task: Task }): ReactElement {
     const cells = layout(tree);
     if (!nodes.length && task === 'gifts') return { steps: [blank('Въведи поне една двойка числа.')], cells, nodes };
     const gen =
-      task === 'gifts'
-        ? giftsTrace(tree)
-        : task === 'paths'
-          ? pathsTrace(tree)
-          : task === 'traverse'
-            ? traversalTrace(tree, VARIANTS[variant][0], VARIANTS[variant][1])
-            : levelOrderTrace(tree, task === 'levels' ? 'levels' : task === 'zigzag' ? 'zigzag' : 'right');
+      task === 'build'
+        ? buildTrace(input)
+        : task === 'gifts'
+          ? giftsTrace(tree)
+          : task === 'paths'
+            ? pathsTrace(tree)
+            : task === 'traverse'
+              ? traversalTrace(tree, VARIANTS[variant][0], VARIANTS[variant][1])
+              : levelOrderTrace(tree, task === 'levels' ? 'levels' : task === 'zigzag' ? 'zigzag' : 'right');
     return { steps: [...gen], cells, nodes };
   }, [input, variant, task]);
 
@@ -91,7 +98,15 @@ export default function TreeTaskTrace({ task }: { task: Task }): ReactElement {
   const side = step.aux.length > 0;
 
   const diagram = (
-    <TreeDiagram nodes={shown} cells={cells} marks={step.marks} badges={step.badges} label={`Дърво: ${input}`} minWidth={task === 'gifts' ? 300 : 240} />
+    <TreeDiagram
+      nodes={shown}
+      cells={cells}
+      marks={step.marks}
+      badges={step.badges}
+      label={`Дърво: ${input}`}
+      stubs={task !== 'build'}
+      minWidth={task === 'gifts' ? 300 : 240}
+    />
   );
 
   return (
@@ -126,6 +141,7 @@ export default function TreeTaskTrace({ task }: { task: Task }): ReactElement {
         </>
       }
     >
+      {step.tape !== undefined && <TokenTape tokens={step.tape} at={step.at ?? 0} />}
       {side ? (
         <div className="trace-body">
           {diagram}

@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildTrace,
   exprTreeTrace,
   giftsTrace,
   height,
   inorderString,
   layout,
+  levelArray,
   levelOrderTrace,
   levelStrings,
   parseEdges,
@@ -51,7 +53,7 @@ describe('the level order array is read the way the examples are written', () =>
   });
 });
 
-describe('task 1: inorder agrees with solutions/1.cpp', () => {
+describe('task 2: inorder agrees with solutions/2.cpp', () => {
   it.each(cases)('case %i, recursively', (_, c) => {
     const steps = run(traversalTrace(parseLevelArray(text(c.tokens)), 'in', 'rec'));
     expect(numbers(last(steps).out)).toEqual(c.inorderRec);
@@ -91,7 +93,49 @@ describe('task 1: inorder agrees with solutions/1.cpp', () => {
   });
 });
 
-describe('task 2: the paths agree with solutions/2.cpp', () => {
+describe('task 1: building the tree from the level order array agrees with solutions/1.cpp', () => {
+  const built = (steps: TreeStep[]): string[] => {
+    const nodes = last(steps).nodes ?? [];
+    const tree: Tree = { nodes: new Map(nodes.map((n) => [n.id, n])), root: nodes.length ? nodes[0].id : null, binary: true };
+    return levelArray(tree);
+  };
+
+  it.each(cases)('case %i', (_, c) => {
+    expect(built(run(buildTrace(text(c.tokens))))).toEqual(c.levelArray);
+  });
+
+  it.each(cases)('case %i builds the same tree as the parser the other widgets use', (_, c) => {
+    expect(built(run(buildTrace(text(c.tokens))))).toEqual(levelArray(parseLevelArray(text(c.tokens))));
+  });
+
+  it('never reads the two cells of a null', () => {
+    const steps = run(buildTrace('1 null 2 3'));
+    expect(built(steps)).toEqual(['1', 'null', '2', '3']);
+    expect(traversalValues(parseLevelArray('1 null 2 3'), 'in')).toEqual(['1', '3', '2']);
+    expect(built(run(buildTrace('1 2 null 3')))).toEqual(['1', '2', 'null', '3']);
+  });
+
+  it('keeps at most one level in the queue of parents', () => {
+    const steps = run(buildTrace('1 2 3 4 5 6 7'));
+    expect(Math.max(...steps.map((s) => s.aux[0]?.items.length ?? 0))).toBe(4);
+  });
+
+  it('says so instead of building anything when there is no root', () => {
+    for (const input of ['', '[]', 'null']) {
+      const steps = run(buildTrace(input));
+      expect(last(steps).nodes).toEqual([]);
+      expect(last(steps).kind).toBe('ok');
+    }
+  });
+
+  it('drops the trailing nulls when it writes the array back', () => {
+    expect(levelArray(parseLevelArray('1 2'))).toEqual(['1', '2']);
+    expect(levelArray(parseLevelArray('1 null 2'))).toEqual(['1', 'null', '2']);
+    expect(levelArray(parseLevelArray('[]'))).toEqual([]);
+  });
+});
+
+describe('task 3: the paths agree with solutions/3.cpp', () => {
   it.each(cases)('case %i', (_, c) => {
     expect(last(run(pathsTrace(parseLevelArray(text(c.tokens))))).paths ?? []).toEqual(c.paths);
   });
@@ -109,7 +153,7 @@ describe('task 2: the paths agree with solutions/2.cpp', () => {
   });
 });
 
-describe('tasks 3, 4 and 5: the level order agrees with solutions/3.cpp, 4.cpp and 5.cpp', () => {
+describe('tasks 4, 5 and 6: the level order agrees with solutions/4.cpp, 5.cpp and 6.cpp', () => {
   it.each(cases)('case %i, level by level', (_, c) => {
     const steps = run(levelOrderTrace(parseLevelArray(text(c.tokens)), 'levels'));
     expect((last(steps).levels ?? []).map(numbers)).toEqual(c.levels);
@@ -142,7 +186,7 @@ describe('tasks 3, 4 and 5: the level order agrees with solutions/3.cpp, 4.cpp a
   });
 });
 
-describe('task 6: the expression tree agrees with solutions/6.cpp', () => {
+describe('task 7: the expression tree agrees with solutions/7.cpp', () => {
   it.each(exprCases)('case %i', (_, c) => {
     const built = exprTreeTrace(c.s);
     expect(built.ok).toBe(true);
@@ -183,7 +227,7 @@ describe('task 6: the expression tree agrees with solutions/6.cpp', () => {
   });
 });
 
-describe('task 7: the gift counts agree with solutions/7.cpp', () => {
+describe('task 8: the gift counts agree with solutions/8.cpp', () => {
   it.each(giftCases)('case %i', (_, c) => {
     const tree = parseEdges(c.edges.flat().join(' '));
     if (c.n === 1) {
