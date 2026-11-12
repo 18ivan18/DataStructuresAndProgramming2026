@@ -11,33 +11,26 @@ struct ListNode
 
 ListNode *reverseKGroup(ListNode *head, int k)
 {
-    ListNode *prev = nullptr;
-    ListNode *cur = head;
-    int x = k;
-    ListNode *testLen = head;
-    while (testLen && x)
+    ListNode *node = head;
+    for (int i = 0; i < k; i++)
     {
-        testLen = testLen->next;
-        x--;
-    }
-    if (x != 0)
-    {
-        return head;
+        if (!node)
+        {
+            return head;
+        }
+        node = node->next;
     }
 
-    x = k;
-    while (cur && x > 0)
+    ListNode *prev = reverseKGroup(node, k);
+    ListNode *cur = head;
+    for (int i = 0; i < k; i++)
     {
-        ListNode *tmp = cur->next;
+        ListNode *next = cur->next;
         cur->next = prev;
         prev = cur;
-        cur = tmp;
-        x--;
+        cur = next;
     }
-    if (cur != nullptr)
-    {
-        head->next = reverseKGroup(cur, k);
-    }
+
     return prev;
 }
 
@@ -98,6 +91,14 @@ int main()
 
     list = reverseKGroup(listOf({1, 2, 3, 4}), 2);
     assert(equals(list, {2, 1, 4, 3}));
+    freeList(list);
+
+    list = reverseKGroup(listOf({1, 2, 3, 4, 5}), 4);
+    assert(equals(list, {4, 3, 2, 1, 5}));
+    freeList(list);
+
+    list = reverseKGroup(listOf({1, 2, 3, 4, 5}), 5);
+    assert(equals(list, {5, 4, 3, 2, 1}));
     freeList(list);
 
     assert(reverseKGroup(nullptr, 2) == nullptr);

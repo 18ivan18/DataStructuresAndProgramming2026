@@ -1,123 +1,89 @@
+#include <algorithm>
 #include <cassert>
+#include <queue>
+#include <stack>
 #include <vector>
 
-struct ListNode
+bool canParade(std::queue<int> arriving)
 {
-    int val;
-    ListNode *next;
-    ListNode(int x = 0, ListNode *next = nullptr) : val(x), next(next) {}
-};
+    std::stack<int> side;
+    int next = 1;
 
-void shuffle(ListNode *&head)
-{
-    if (!head || !head->next)
+    while (!arriving.empty() || !side.empty())
     {
-        return;
-    }
-
-    int length = 0;
-
-    for (ListNode *iter = head; iter; iter = iter->next)
-    {
-        length++;
-    }
-
-    ListNode *firstHalfEnd = head;
-
-    for (int i = 1; i < (length + 1) / 2; i++)
-    {
-        firstHalfEnd = firstHalfEnd->next;
-    }
-
-    ListNode *current = firstHalfEnd->next;
-    firstHalfEnd->next = nullptr;
-
-    ListNode *reversed = nullptr;
-
-    while (current)
-    {
-        ListNode *next = current->next;
-        current->next = reversed;
-        reversed = current;
-        current = next;
-    }
-
-    ListNode *reversedEnd = reversed;
-
-    while (reversedEnd->next)
-    {
-        reversedEnd = reversedEnd->next;
-    }
-
-    reversedEnd->next = head;
-    head = reversed;
-}
-
-ListNode *listOf(const std::vector<int> &values)
-{
-    ListNode *head = nullptr;
-
-    for (size_t i = values.size(); i > 0; i--)
-    {
-        head = new ListNode(values[i - 1], head);
-    }
-
-    return head;
-}
-
-bool equals(ListNode *head, const std::vector<int> &expected)
-{
-    for (size_t i = 0; i < expected.size(); i++)
-    {
-        if (!head || head->val != expected[i])
+        if (!side.empty() && side.top() == next)
+        {
+            side.pop();
+            next++;
+        }
+        else if (!arriving.empty())
+        {
+            side.push(arriving.front());
+            arriving.pop();
+        }
+        else
         {
             return false;
         }
-
-        head = head->next;
     }
 
-    return head == nullptr;
+    return true;
 }
 
-void freeList(ListNode *head)
+std::queue<int> queueOf(const std::vector<int> &values)
 {
-    while (head)
+    std::queue<int> result;
+
+    for (size_t i = 0; i < values.size(); i++)
     {
-        ListNode *next = head->next;
-        delete head;
-        head = next;
+        result.push(values[i]);
     }
+
+    return result;
+}
+
+bool avoids231(const std::vector<int> &a)
+{
+    for (size_t i = 0; i < a.size(); i++)
+    {
+        for (size_t j = i + 1; j < a.size(); j++)
+        {
+            for (size_t k = j + 1; k < a.size(); k++)
+            {
+                if (a[k] < a[i] && a[i] < a[j])
+                {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
 }
 
 int main()
 {
-    ListNode *list = listOf({1, 2, 3, 4, 5});
-    shuffle(list);
-    assert(equals(list, {5, 4, 1, 2, 3}));
-    freeList(list);
+    assert(canParade(queueOf({5, 1, 2, 4, 3})));
+    assert(!canParade(queueOf({2, 3, 1})));
+    assert(canParade(queueOf({1, 2, 3, 4, 5})));
+    assert(canParade(queueOf({5, 4, 3, 2, 1})));
+    assert(canParade(queueOf({3, 1, 2})));
+    assert(!canParade(queueOf({2, 4, 1, 3})));
+    assert(canParade(queueOf({1})));
+    assert(canParade(queueOf({})));
 
-    list = listOf({1, 2, 3, 4});
-    shuffle(list);
-    assert(equals(list, {4, 3, 1, 2}));
-    freeList(list);
+    for (int n = 1; n <= 7; n++)
+    {
+        std::vector<int> a(n);
 
-    list = listOf({1, 2, 3});
-    shuffle(list);
-    assert(equals(list, {3, 1, 2}));
-    freeList(list);
+        for (int i = 0; i < n; i++)
+        {
+            a[i] = i + 1;
+        }
 
-    list = listOf({1, 2});
-    shuffle(list);
-    assert(equals(list, {2, 1}));
-    freeList(list);
-
-    list = listOf({1});
-    shuffle(list);
-    assert(equals(list, {1}));
-    freeList(list);
-
-    list = nullptr;
-    shuffle(list);
-    assert(list == nullptr);
+        do
+        {
+            assert(canParade(queueOf(a)) == avoids231(a));
+        } while (std::next_permutation(a.begin(), a.end()));
+    }
 }

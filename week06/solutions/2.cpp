@@ -7,50 +7,45 @@ struct ListNode
 };
 
 #include <cassert>
-#include <stack>
 #include <vector>
+
+ListNode *reverse(ListNode *head)
+{
+    ListNode *prev = nullptr;
+    while (head)
+    {
+        ListNode *next = head->next;
+        head->next = prev;
+        prev = head;
+        head = next;
+    }
+
+    return prev;
+}
 
 bool isPalindrome(ListNode *head)
 {
-    if (!head || !head->next)
+    ListNode *slow = head;
+    ListNode *fast = head;
+    while (fast && fast->next)
     {
-        return true;
-    }
-    ListNode *fast = head, *slow = head;
-    std::stack<int> s;
-    bool odd = false;
-    while (fast)
-    {
-        s.push(slow->val);
         slow = slow->next;
-        fast = fast->next;
-        if (fast)
+        fast = fast->next->next;
+    }
+
+    ListNode *second = reverse(slow);
+    bool result = true;
+    for (ListNode *left = head, *right = second; right; left = left->next, right = right->next)
+    {
+        if (left->val != right->val)
         {
-            fast = fast->next;
-        }
-        else
-        {
-            odd = true;
+            result = false;
             break;
         }
     }
-    std::stack<int> temp = s;
+    reverse(second);
 
-    if (odd)
-    {
-        s.pop();
-    }
-
-    while (slow)
-    {
-        if (slow->val != s.top())
-        {
-            return false;
-        }
-        s.pop();
-        slow = slow->next;
-    }
-    return true;
+    return result;
 }
 
 ListNode *listOf(const std::vector<int> &values)
@@ -94,6 +89,7 @@ int main()
 {
     ListNode *list = listOf({1, 2, 2, 1});
     assert(isPalindrome(list));
+    assert(equals(list, {1, 2, 2, 1}));
     freeList(list);
 
     list = listOf({1, 2});
@@ -102,6 +98,7 @@ int main()
 
     list = listOf({1, 2, 3, 2, 1});
     assert(isPalindrome(list));
+    assert(equals(list, {1, 2, 3, 2, 1}));
     freeList(list);
 
     list = listOf({1, 2, 3});
@@ -114,6 +111,7 @@ int main()
 
     list = listOf({1, 2, 3, 4, 2, 1});
     assert(!isPalindrome(list));
+    assert(equals(list, {1, 2, 3, 4, 2, 1}));
     freeList(list);
 
     assert(isPalindrome(nullptr));
