@@ -79,6 +79,9 @@ namespace w6s6 {
 namespace w6s7 {
 #include "../../week06/solutions/7.cpp"
 }
+namespace w6s9 {
+#include "../../week06/solutions/9.cpp"
+}
 namespace w6s8 {
 #include "../../week06/solutions/8.cpp"
 }
@@ -488,15 +491,19 @@ int main()
             int k = 1 + rnd(n), x = 1 + rnd(9);
             std::vector<int> pal = a;
             if (t % 3 == 0) for (int i = 0; i < n / 2; i++) pal[n - 1 - i] = pal[i];
-            w6s8::ListNode *sh = w6s8::listOf(a);
-            w6s8::shuffle(sh);
+            w6s9::ListNode *sh = w6s9::listOf(a);
+            w6s9::shuffle(sh);
+            std::vector<int> arriving(n);
+            for (int i = 0; i < n; i++) arriving[i] = i + 1;
+            for (int i = n - 1; i > 0; i--) std::swap(arriving[i], arriving[rnd(i + 1)]);
             std::cout << (t ? "," : "") << "{\"values\": " << printVec(a)
                       << ", \"k\": " << k << ", \"kGroup\": " << printVec(toVec(w6s1::reverseKGroup(w6s1::listOf(a), k)))
                       << ", \"palindromeOf\": " << printVec(pal) << ", \"palindrome\": " << (w6s2::isPalindrome(w6s2::listOf(pal)) ? "true" : "false")
                       << ", \"reorder\": " << printVec(toVec(w6s4::reorderList(w6s4::listOf(a))))
                       << ", \"oddEven\": " << printVec(toVec(w6s6::oddEvenList(w6s6::listOf(a))))
                       << ", \"x\": " << x << ", \"partition\": " << printVec(toVec(w6s7::partition(w6s7::listOf(a), x)))
-                      << ", \"shuffle\": " << printVec(toVec(sh)) << "}";
+                      << ", \"shuffle\": " << printVec(toVec(sh))
+                      << ", \"arriving\": " << printVec(arriving) << ", \"parade\": " << (w6s8::canParade(w6s8::queueOf(arriving)) ? "true" : "false") << "}";
         }
     }
     std::cout << "]";

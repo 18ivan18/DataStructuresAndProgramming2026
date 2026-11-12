@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
 import type { ReactElement } from 'react';
-import { kGroupTrace, oddEvenTrace, palindromeTrace, partitionTrace, reorderTrace, shuffleTrace, type PrepRun, type PrepStep } from '../lib/week06';
+import { kGroupTrace, oddEvenTrace, palindromeTrace, paradeTrace, partitionTrace, reorderTrace, shuffleTrace, type PrepRun, type PrepStep } from '../lib/week06';
 import { ListDiagram, SLOT, rowLayout, type Pos } from './ListDiagram';
 import { StackView } from './StackView';
 import { TracePanel } from './TracePanel';
 import { useStepper } from './useStepper';
 
-type Task = 'kgroup' | 'palindrome' | 'reorder' | 'oddeven' | 'partition' | 'shuffle';
+type Task = 'kgroup' | 'palindrome' | 'reorder' | 'oddeven' | 'partition' | 'shuffle' | 'parade';
 
 const DEFAULT_INPUT: Record<Task, string> = {
   kgroup: '1 2 3 4 5',
@@ -15,6 +15,7 @@ const DEFAULT_INPUT: Record<Task, string> = {
   oddeven: '2 1 3 5 6 4 7',
   partition: '1 4 3 2 5 2',
   shuffle: '1 2 3 4 5',
+  parade: '5 1 2 4 3',
 };
 
 const LANE_LABEL: Partial<Record<Task, [string, string]>> = {
@@ -67,14 +68,17 @@ export default function PrepTaskTrace({ task }: { task: Task }): ReactElement {
               ? oddEvenTrace(values)
               : task === 'partition'
                 ? partitionTrace(values, kk)
-                : shuffleTrace(values);
+                : task === 'parade'
+                  ? paradeTrace(values)
+                  : shuffleTrace(values);
     return { steps: run.steps, pos: run.lanes ? laneLayout(run.ids, run.lanes, run.dummies) : rowLayout(run.ids, 70) };
   }, [input, kk, task]);
 
   const st = useStepper(steps, 900);
   const step = st.step;
   const lanes = LANE_LABEL[task];
-  const diagram = ok && <ListDiagram step={step} pos={pos} label={`Свързан списък: ${values.join(', ')}`} minWidth={task === 'partition' ? 360 : 0} />;
+  const label = task === 'parade' ? `Подходна улица: ${values.join(', ')}` : `Свързан списък: ${values.join(', ')}`;
+  const diagram = ok && <ListDiagram step={step} pos={pos} label={label} minWidth={task === 'partition' ? 360 : 0} />;
 
   return (
     <TracePanel
@@ -99,7 +103,7 @@ export default function PrepTaskTrace({ task }: { task: Task }): ReactElement {
       {step.stack !== undefined ? (
         <div className="trace-body">
           {diagram}
-          <StackView title="Стек: първата половина" minSlots={3} items={step.stack.map((v, i) => ({ key: `${i}-${v}`, label: String(v), tone: i === step.stack!.length - 1 ? 'ok' : undefined }))} />
+          <StackView title="Странична улица" minSlots={3} items={step.stack.map((v, i) => ({ key: `${i}-${v}`, label: String(v), tone: i === step.stack!.length - 1 ? 'ok' : undefined }))} />
         </div>
       ) : (
         diagram

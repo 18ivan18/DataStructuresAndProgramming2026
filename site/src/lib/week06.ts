@@ -1,6 +1,7 @@
 import { ListMachine, valuesFrom, type ListStep } from './linked';
 
 export interface PrepStep extends ListStep {
+  /** Contents of an auxiliary stack the task works with, bottom first. */
   stack?: number[];
 }
 
@@ -83,53 +84,140 @@ export function kGroupTrace(values: number[], k: number): PrepRun {
 export function palindromeTrace(values: number[]): PrepRun {
   const m = new ListMachine();
   const ids = buildList(m, values);
-  const stack: number[] = [];
-  const snap = (kind: ListStep['kind'], message: string, result?: string): void => {
-    m.snap(kind, message, undefined, result);
-    steps(m)[m.steps.length - 1].stack = [...stack];
-  };
   m.set('head', ids[0] ?? null);
   m.set('slow', ids[0] ?? null);
   m.set('fast', ids[0] ?? null);
   if (values.length < 2) {
-    snap('ok', 'Списък с по-малко от два възела е палиндром без никаква работа.', 'true');
+    m.snap('ok', 'Списък с по-малко от два възела е палиндром без никаква работа.', undefined, 'true');
     return { steps: steps(m), ids };
   }
-  snap('start', 'fast тича двойно по-бързо от slow. Докато стигне края, slow е по средата, а стекът пази първата половина.');
+  m.snap('start', 'Без стек: fast тича двойно по-бързо от slow, за да стигнем до средата, после обръщаме втората половина на място.');
 
-  let odd = false;
-  while (m.get('fast') !== null) {
-    const slow = m.get('slow')!;
-    stack.push(m.node(slow).val as number);
-    snap('push', `s.push(slow->val): ${show(m, slow)} отива в стека. Върхът винаги е последното видяно от първата половина.`);
+  while (m.get('fast') !== null && m.node(m.get('fast')!).next !== null) {
     m.advance('slow');
     m.advance('fast');
-    if (m.get('fast') === null) {
-      odd = true;
-      snap('keep', 'fast свърши след една стъпка: броят възли е нечетен и slow стои точно след средния възел.');
+    m.advance('fast');
+    m.snap('move', `slow → ${show(m, m.get('slow'))}, fast → ${show(m, m.get('fast'))}.`);
+  }
+  m.drop('fast');
+  const odd = values.length % 2 === 1;
+  m.snap(
+    'keep',
+    `fast стигна края, значи slow е първият възел от втората половина: ${show(m, m.get('slow'))}.` +
+      (odd ? ' Броят възли е нечетен: това е средният възел и накрая ще се сравни сам със себе си.' : ''),
+  );
+
+  const reverseFrom = (from: number | null): number | null => {
+    m.set('prev', null);
+    m.set('cur', from);
+    while (m.get('cur') !== null) {
+      const cur = m.get('cur')!;
+      m.set('next', m.node(cur).next);
+      m.setNext(cur, m.get('prev'));
+      m.set('prev', cur);
+      m.set('cur', m.get('next'));
+      m.hops++;
+      m.snap('apply', `${show(m, cur)} сочи назад; продължаваме с ${show(m, m.get('cur'))}.`);
+    }
+    const first = m.get('prev');
+    m.drop('next');
+    m.drop('prev');
+    m.drop('cur');
+    return first;
+  };
+
+  const second = reverseFrom(m.get('slow'));
+  m.drop('slow');
+  m.set('left', m.get('head'));
+  m.set('right', second);
+  m.snap('keep', `Втората половина вече тръгва от ${show(m, second)} и свършва в nullptr. left тръгва от началото, right от нея: двете вериги се движат една срещу друга.`);
+
+  let same = true;
+  while (m.get('right') !== null) {
+    const left = m.get('left')!;
+    const right = m.get('right')!;
+    if (m.node(left).val !== m.node(right).val) {
+      same = false;
+      m.snap('error', `left->val = ${show(m, left)}, right->val = ${show(m, right)}: разминават се, значи не е палиндром. Спираме сравняването, но списъкът още е разкъсан.`);
       break;
     }
-    m.advance('fast');
-    snap('move', `slow → ${show(m, m.get('slow'))}, fast → ${show(m, m.get('fast'))}.`);
+    m.snap('ok', `${show(m, left)} съвпада с ${show(m, right)}: продължаваме напред по двете вериги.`);
+    m.advance('left');
+    m.advance('right');
   }
-  if (!odd) snap('keep', `fast е nullptr: броят възли е четен и slow е първият възел от втората половина (${show(m, m.get('slow'))}).`);
+  m.drop('left');
+  m.drop('right');
+  if (same) m.snap('keep', 'right стигна nullptr, без нито едно разминаване. Остава да върнем списъка както го получихме.');
 
-  if (odd) {
-    const middle = stack.pop()!;
-    snap('pop', `Средният възел (${middle}) се сравнява сам със себе си: махаме го от стека.`);
+  reverseFrom(second);
+  m.snap(
+    same ? 'ok' : 'error',
+    `Втората половина е обърната обратно: [${valuesOf(m, m.get('head')).join(', ')}] — списъкът е както беше. ${same ? 'Палиндром' : 'Не е палиндром'}, с O(n) време и O(1) допълнителна памет: нито един възел не беше копиран.`,
+    undefined,
+    same ? 'true' : 'false',
+  );
+  return { steps: steps(m), ids };
+}
+
+export function paradeTrace(values: number[]): PrepRun {
+  const m = new ListMachine();
+  const ids = buildList(m, values);
+  const wanted = [...values].sort((a, b) => a - b);
+  const side: number[] = [];
+  const parade: number[] = [];
+  let arrived = 0;
+  let next = 0;
+
+  const snap = (kind: ListStep['kind'], message: string, result?: string): void => {
+    m.snap(kind, message, undefined, result);
+    steps(m)[m.steps.length - 1].stack = [...side];
+  };
+
+  m.set('arriving', ids[0] ?? null);
+  if (!values.length) {
+    snap('ok', 'Няма коли: шествието е подредено.', 'true');
+    return { steps: steps(m), ids };
   }
-  while (m.get('slow') !== null) {
-    const slow = m.get('slow')!;
-    const top = stack[stack.length - 1];
-    if ((m.node(slow).val as number) !== top) {
-      snap('error', `slow->val = ${show(m, slow)}, а върхът на стека е ${top}: различават се, значи не е палиндром.`, 'false');
+  snap('start', `Колите пристигат в този ред. В шествието трябва да влязат по номер: ${wanted.join(', ')}.`);
+
+  while (arrived < values.length || side.length) {
+    if (side.length && side[side.length - 1] === wanted[next]) {
+      const car = side.pop()!;
+      parade.push(car);
+      next++;
+      snap('pop', `Кола ${car} е влязла последна в страничната улица и точно нея чакаме: излиза в шествието.`);
+      continue;
+    }
+
+    if (arrived === values.length) {
+      snap(
+        'error',
+        `Чакаме кола ${wanted[next]}, но на изхода на страничната улица е ${side[side.length - 1]}, а по подходната улица няма повече коли: шествието не може да се подреди.`,
+        'false',
+      );
       return { steps: steps(m), ids };
     }
-    stack.pop();
-    snap('ok', `${show(m, slow)} съвпада с върха на стека: s.pop() и продължаваме.`);
-    m.advance('slow');
+
+    const car = values[arrived];
+    const id = ids[arrived];
+    arrived++;
+    m.set('arriving', ids[arrived] ?? null);
+
+    if (car === wanted[next]) {
+      parade.push(car);
+      next++;
+      m.free(id);
+      snap('ok', `Кола ${car} пристига точно когато е нужна: минава направо в шествието.`);
+      continue;
+    }
+
+    side.push(car);
+    m.free(id);
+    snap('push', `Чакаме кола ${wanted[next]}, а пристига ${car}: прибира се в страничната улица.`);
   }
-  snap('ok', `Втората половина свърши, без нито едно разминаване: палиндром. Стекът обаче е O(n) памет.`, 'true');
+
+  m.drop('arriving');
+  snap('ok', `Всички коли влязоха в шествието по номер: ${parade.join(', ')}. Страничната улица е празна.`, 'true');
   return { steps: steps(m), ids };
 }
 

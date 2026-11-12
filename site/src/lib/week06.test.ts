@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { valuesFrom } from './linked';
-import { kGroupTrace, oddEvenTrace, palindromeTrace, partitionTrace, reorderTrace, shuffleTrace, type PrepRun } from './week06';
+import { kGroupTrace, oddEvenTrace, palindromeTrace, paradeTrace, partitionTrace, reorderTrace, shuffleTrace, type PrepRun } from './week06';
 import cpp from './__fixtures__/cpp.json';
 
 const result = (run: PrepRun): number[] => {
@@ -32,18 +32,21 @@ describe('task 2: palindrome matches solutions/2.cpp', () => {
     expect(answer(palindromeTrace(c.palindromeOf))).toBe(String(c.palindrome));
   });
 
-  it('empties the stack it filled when the list is a palindrome', () => {
+  it('reverses the second half and puts it back, without a stack', () => {
     const run = palindromeTrace([1, 2, 3, 2, 1]);
     const last = run.steps[run.steps.length - 1];
     expect(last.result).toBe('true');
-    expect(last.stack).toEqual([]);
-    expect(Math.max(...run.steps.map((s) => s.stack?.length ?? 0))).toBe(3);
+    expect(result(run)).toEqual([1, 2, 3, 2, 1]);
+    const compare = run.steps.find((s) => s.vars.some(([name]) => name === 'right'))!;
+    const right = compare.vars.find(([name]) => name === 'right')![1];
+    expect(valuesFrom(compare.nodes, right)).toEqual([1, 2, 3]);
   });
 
-  it('stops at the first mismatch', () => {
+  it('stops at the first mismatch, then restores the list anyway', () => {
     const run = palindromeTrace([1, 2, 3, 4, 2, 1]);
     expect(answer(run)).toBe('false');
     expect(run.steps[run.steps.length - 1].kind).toBe('error');
+    expect(result(run)).toEqual([1, 2, 3, 4, 2, 1]);
   });
 });
 
@@ -72,7 +75,29 @@ describe('task 7: partition matches solutions/7.cpp', () => {
   });
 });
 
-describe('task 8: shuffle matches solutions/8.cpp', () => {
+describe('task 8: street parade matches solutions/8.cpp', () => {
+  it.each(cases)('case %i', (_, c) => {
+    expect(answer(paradeTrace(c.arriving))).toBe(String(c.parade));
+  });
+
+  it('sends a car straight through when it is the one being waited for', () => {
+    const run = paradeTrace([5, 1, 2, 4, 3]);
+    expect(answer(run)).toBe('true');
+    const sideStreet = run.steps.map((s) => s.stack ?? []);
+    expect(Math.max(...sideStreet.map((s) => s.length))).toBe(2);
+    expect(sideStreet[sideStreet.length - 1]).toEqual([]);
+  });
+
+  it('stops when the needed car is buried in the side street', () => {
+    const run = paradeTrace([2, 3, 1]);
+    const last = run.steps[run.steps.length - 1];
+    expect(last.result).toBe('false');
+    expect(last.kind).toBe('error');
+    expect(last.stack).toEqual([2, 3]);
+  });
+});
+
+describe('task 9: shuffle matches solutions/9.cpp', () => {
   it.each(cases)('case %i', (_, c) => {
     expect(result(shuffleTrace(c.values))).toEqual(c.shuffle);
   });
@@ -91,6 +116,7 @@ describe('every trace', () => {
     ['oddEven', oddEvenTrace(values)],
     ['partition', partitionTrace(values, 3)],
     ['shuffle', shuffleTrace(values)],
+    ['parade', paradeTrace(values)],
   ];
 
   it('starts somewhere and ends with a message, for every length from 1 to 9', () => {
@@ -108,7 +134,7 @@ describe('every trace', () => {
     for (let n = 1; n <= 9; n++) {
       const values = Array.from({ length: n }, (_, i) => i + 1);
       for (const [name, run] of runs(values)) {
-        if (name === 'palindrome') continue;
+        if (name === 'parade') continue;
         const reachable = result(run);
         expect(reachable.slice().sort((a, b) => a - b), `${name} n=${n}`).toEqual(values);
       }
