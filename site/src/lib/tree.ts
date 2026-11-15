@@ -193,7 +193,7 @@ const snapshot = (tree: Tree): TNode[] => [...tree.nodes.values()].map((n) => ({
 
 const label = (tree: Tree, id: number): string => tree.nodes.get(id)!.val;
 
-/* ---------- task 1: the tree of a level order array (solutions/1.cpp) ---------- */
+/* ---------- task 2: the tree of a level order array (solutions/2.cpp) ---------- */
 
 /** The level order array of a tree, without the trailing nulls — the inverse of parseLevelArray. */
 export function levelArray(tree: Tree): string[] {
@@ -340,7 +340,7 @@ export function* buildTrace(text: string): Generator<TreeStep> {
   };
 }
 
-/* ---------- task 2: preorder, inorder and postorder (solutions/2.cpp) ---------- */
+/* ---------- task 1: preorder, inorder and postorder (solutions/1.cpp) ---------- */
 
 export type Order = 'pre' | 'in' | 'post';
 export type Mode = 'rec' | 'iter';
@@ -851,6 +851,136 @@ export function exprTreeTrace(text: string): ExprRun {
   tree.root = stack[0];
   push('ok', `Остана едно дърво — то е коренът. Inorder обхождането му връща пак „${inorderString(tree)}“.`);
   return { steps, tree, ok: true };
+}
+
+/* ---------- task 9: the lowest common ancestor in a parent array (solutions/9.cpp) ---------- */
+
+export interface ParentRun {
+  tree: Tree;
+  parent: number[];
+}
+
+export function parseParentArray(text: string): ParentRun {
+  const tokens = text
+    .replace(/[[\]]/g, ' ')
+    .split(/[\s,]+/)
+    .filter(Boolean)
+    .slice(0, 24);
+  const parent = tokens.map(Number);
+  const tree = emptyTree(false);
+  const n = parent.length;
+  if (!n || parent.some((v) => !Number.isInteger(v) || v < -1 || v >= n)) return { tree, parent };
+
+  for (let i = 0; i < n; i++) tree.nodes.set(i + 1, { id: i + 1, val: String(i), kids: [] });
+  for (let i = 0; i < n; i++) {
+    if (parent[i] !== -1 && parent[i] !== i) tree.nodes.get(parent[i] + 1)!.kids.push(i + 1);
+  }
+  const roots = parent.map((v, i) => (v === -1 ? i : -1)).filter((i) => i >= 0);
+  tree.root = roots.length === 1 ? roots[0] + 1 : null;
+  for (const id of [...tree.nodes.keys()]) {
+    if (!reaches(tree, tree.root, id)) tree.nodes.delete(id);
+  }
+  return { tree, parent };
+}
+
+export function* parentLcaTrace(run: ParentRun, u: number, v: number): Generator<TreeStep> {
+  const { tree, parent } = run;
+  const n = parent.length;
+  const id = (i: number): number => i + 1;
+  const climbU: number[] = [];
+  const climbV: number[] = [];
+  const depth = new Map<number, number>();
+  let cu = u;
+  let cv = v;
+
+  if (!n || tree.root === null || tree.nodes.size !== n) {
+    yield { kind: 'error', message: 'Масивът не описва дърво: иска се точно един -1 за корена, валидни индекси и никакви цикли.', marks: {}, aux: [], out: [] };
+    return;
+  }
+  if (!Number.isInteger(u) || !Number.isInteger(v) || u < 0 || v < 0 || u >= n || v >= n) {
+    yield { kind: 'error', message: `u и v трябва да са индекси между 0 и ${n - 1}.`, marks: {}, aux: [], out: [] };
+    return;
+  }
+
+  const marks = (): Record<number, Mark> => {
+    const map: Record<number, Mark> = {};
+    for (const i of climbU) map[id(i)] = 'path';
+    for (const i of climbV) map[id(i)] = climbU.includes(i) ? 'done' : 'queue';
+    map[id(cu)] = 'current';
+    map[id(cv)] = 'current';
+    return map;
+  };
+  const panel = (): AuxPanel[] => [
+    { label: 'parent', items: parent.map(String), shape: 'row' },
+    { label: 'курсори', items: [`u = ${cu}`, `v = ${cv}`], shape: 'row' },
+  ];
+  const badges = (): Record<number, string> => Object.fromEntries([...depth].map(([i, d]) => [id(i), String(d)]));
+  const step = (kind: TreeKind, message: string, out: string[] = []): TreeStep => ({
+    kind,
+    message,
+    marks: marks(),
+    aux: panel(),
+    out,
+    badges: badges(),
+  });
+
+  climbU.push(u);
+  climbV.push(v);
+  yield step(
+    'start',
+    `Указатели няма: parent[i] е родителят на i, а коренът ${parent.indexOf(-1)} носи -1. Търсим най-ниския общ предшественик на ${u} и ${v} — най-дълбокия възел, който е предшественик и на двата.`,
+  );
+
+  function* climb(from: number, chain: number[], name: string): Generator<TreeStep, number> {
+    let node = from;
+    let steps = 0;
+    while (parent[node] !== -1) {
+      node = parent[node];
+      steps++;
+      chain.push(node);
+      if (name === 'u') cu = node;
+      else cv = node;
+      yield step('move', `parent[${chain[chain.length - 2]}] = ${node}: ${steps} ${steps === 1 ? 'стъпка' : 'стъпки'} нагоре от ${from}.`);
+    }
+    chain.forEach((i, at) => depth.set(i, steps - at));
+    if (name === 'u') cu = from;
+    else cv = from;
+    yield step('visit', `Коренът е достигнат: дълбочина на ${from} е ${steps}. Курсорът се връща при ${from}, а значката на всеки възел по пътя е дълбочината му.`);
+    return steps;
+  }
+
+  const du = yield* climb(u, climbU, 'u');
+  const dv = yield* climb(v, climbV, 'v');
+
+  let levelU = du;
+  let levelV = dv;
+  if (du !== dv) {
+    const deeper = du > dv ? u : v;
+    yield step(
+      'keep',
+      `${deeper} е по-дълбок (${Math.max(du, dv)} срещу ${Math.min(du, dv)}): качваме го ${Math.abs(du - dv)} ${Math.abs(du - dv) === 1 ? 'стъпка' : 'стъпки'}, за да стъпят двата курсора на едно ниво.`,
+    );
+  }
+  while (levelU > levelV) {
+    cu = parent[cu];
+    levelU--;
+    yield step('move', `u = parent[u] = ${cu}, ниво ${levelU}.`);
+  }
+  while (levelV > levelU) {
+    cv = parent[cv];
+    levelV--;
+    yield step('move', `v = parent[v] = ${cv}, ниво ${levelV}.`);
+  }
+  if (du !== dv) yield step('keep', `Двата курсора са на ниво ${levelU}: ${cu} и ${cv}.`);
+
+  while (cu !== cv) {
+    yield step('keep', `${cu} и ${cv} са различни, значи предшественикът е по-високо — и двата се качват с една стъпка.`);
+    cu = parent[cu];
+    cv = parent[cv];
+    yield step('move', `u = ${cu}, v = ${cv}.`);
+  }
+
+  yield step('ok', `Курсорите се срещнаха в ${cu}: това е най-ниският общ предшественик на ${u} и ${v}. Едно изкачване е една индексация, значи O(h) време и нито един нов възел.`, [String(cu)]);
 }
 
 export function inorderString(tree: Tree): string {

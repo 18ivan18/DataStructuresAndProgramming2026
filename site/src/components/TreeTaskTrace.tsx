@@ -6,8 +6,10 @@ import {
   giftsTrace,
   layout,
   levelOrderTrace,
+  parentLcaTrace,
   parseEdges,
   parseLevelArray,
+  parseParentArray,
   pathsTrace,
   traversalTrace,
   type Cell,
@@ -22,7 +24,7 @@ import { TokenTape } from './TokenTape';
 import { TracePanel } from './TracePanel';
 import { useStepper } from './useStepper';
 
-type Task = 'traverse' | 'levels' | 'zigzag' | 'right' | 'paths' | 'expr' | 'gifts' | 'build';
+type Task = 'traverse' | 'levels' | 'zigzag' | 'right' | 'paths' | 'expr' | 'gifts' | 'build' | 'parent';
 
 const DEFAULT_INPUT: Record<Task, string> = {
   build: '1 null 2 3',
@@ -33,6 +35,7 @@ const DEFAULT_INPUT: Record<Task, string> = {
   paths: '1 2 3 null 5',
   expr: '2-3/(5*2)+1',
   gifts: '0 1, 0 2, 1 3, 1 4, 1 5, 1 6, 4 7, 7 8',
+  parent: '-1 0 0 1 1 2 4 4',
 };
 
 const PRESETS: Partial<Record<Task, string[]>> = {
@@ -44,6 +47,7 @@ const PRESETS: Partial<Record<Task, string[]>> = {
   paths: ['1 2 3 null 5', '1', '1 2 null 3 null 4'],
   expr: ['2-3/(5*2)+1', '3*4-2*5', '1+2+3+4+5', '2*(3+4)'],
   gifts: ['0 1, 0 2, 1 3, 1 4, 1 5, 1 6, 4 7, 7 8', '0 1, 1 2, 2 3, 3 4', '0 1, 0 2, 0 3'],
+  parent: ['-1 0 0 1 1 2 4 4', '-1 0 1 2 3 4', '-1 0 0 0 1 1 2 2'],
 };
 
 const INPUT_LABEL: Record<Task, string> = {
@@ -55,6 +59,7 @@ const INPUT_LABEL: Record<Task, string> = {
   paths: 'дърво',
   expr: 'израз',
   gifts: 'двойки началник–подчинен',
+  parent: 'масив от родители',
 };
 
 const VARIANTS: [Order, Mode, string][] = [
@@ -69,11 +74,17 @@ const blank = (message: string): TreeStep => ({ kind: 'error', message, marks: {
 export default function TreeTaskTrace({ task }: { task: Task }): ReactElement {
   const [input, setInput] = useState(DEFAULT_INPUT[task]);
   const [variant, setVariant] = useState(task === 'traverse' ? 1 : 0);
+  const [u, setU] = useState(3);
+  const [v, setV] = useState(7);
 
   const { steps, cells, nodes } = useMemo((): { steps: TreeStep[]; cells: Map<number, Cell>; nodes: TNode[] } => {
     if (task === 'expr') {
       const run = exprTreeTrace(input);
       return { steps: run.steps, cells: layout(run.tree), nodes: [...run.tree.nodes.values()] };
+    }
+    if (task === 'parent') {
+      const run = parseParentArray(input);
+      return { steps: [...parentLcaTrace(run, u, v)], cells: layout(run.tree), nodes: [...run.tree.nodes.values()] };
     }
     const tree = task === 'gifts' ? parseEdges(input) : parseLevelArray(input);
     const nodes = [...tree.nodes.values()];
@@ -90,7 +101,7 @@ export default function TreeTaskTrace({ task }: { task: Task }): ReactElement {
               ? traversalTrace(tree, VARIANTS[variant][0], VARIANTS[variant][1])
               : levelOrderTrace(tree, task === 'levels' ? 'levels' : task === 'zigzag' ? 'zigzag' : 'right');
     return { steps: [...gen], cells, nodes };
-  }, [input, variant, task]);
+  }, [input, variant, task, u, v]);
 
   const st = useStepper(steps, 850);
   const step = st.step;
@@ -105,7 +116,7 @@ export default function TreeTaskTrace({ task }: { task: Task }): ReactElement {
       badges={step.badges}
       label={`Дърво: ${input}`}
       stubs={task !== 'build'}
-      minWidth={task === 'gifts' ? 300 : 240}
+      minWidth={task === 'gifts' || task === 'parent' ? 300 : 240}
     />
   );
 
@@ -129,6 +140,16 @@ export default function TreeTaskTrace({ task }: { task: Task }): ReactElement {
           <label className="param grow">
             {INPUT_LABEL[task]} <input type="text" value={input} onChange={(e) => setInput(e.target.value)} spellCheck={false} />
           </label>
+          {task === 'parent' && (
+            <>
+              <label className="param">
+                u <input type="number" min={0} value={u} onChange={(e) => setU(Number(e.target.value))} />
+              </label>
+              <label className="param">
+                v <input type="number" min={0} value={v} onChange={(e) => setV(Number(e.target.value))} />
+              </label>
+            </>
+          )}
           {task === 'traverse' && (
             <div className="presets" role="group" aria-label="Обхождане">
               {VARIANTS.map(([, , name], i) => (

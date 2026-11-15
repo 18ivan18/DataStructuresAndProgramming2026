@@ -112,6 +112,9 @@ namespace w7s7 {
 namespace w7s8 {
 #include "../../week07/solutions/8.cpp"
 }
+namespace w7s9 {
+#include "../../week07/solutions/9.cpp"
+}
 // Every standard header the week 8 solutions use, pulled in before the namespaces so that
 // their own #includes are no-ops and nothing from std lands inside a namespace.
 #include <algorithm>
@@ -574,17 +577,17 @@ int main()
             int n = 1 + rnd(12);
             for (int i = 0; i < n; i++) a.push_back(i == 0 || rnd(4) ? 1 + rnd(9) : NUL);
             std::cout << (t ? "," : "") << "{\"tokens\": " << printTokens(a)
-                      << ", \"inorder\": " << printVec(w7s2::inorderTraversal(build(a, [](int v) { return new w7s2::TreeNode(v); })))
-                      << ", \"inorderRec\": " << printVec(w7s2::inorderTraversalRec(build(a, [](int v) { return new w7s2::TreeNode(v); })))
+                      << ", \"inorder\": " << printVec(w7s1::inorderTraversal(build(a, [](int v) { return new w7s1::TreeNode(v); })))
+                      << ", \"inorderRec\": " << printVec(w7s1::inorderTraversalRec(build(a, [](int v) { return new w7s1::TreeNode(v); })))
                       << ", \"paths\": " << printStrings(w7s3::binaryTreePaths(build(a, [](int v) { return new w7s3::TreeNode(v); })))
                       << ", \"levels\": " << printLevels(w7s4::levelOrderTraversal(build(a, [](int v) { return new w7s4::TreeNode(v); })))
                       << ", \"zigzag\": " << printLevels(w7s5::zigzagLevelOrder(build(a, [](int v) { return new w7s5::TreeNode(v); })))
                       << ", \"right\": " << printVec(w7s6::rightSideView(build(a, [](int v) { return new w7s6::TreeNode(v); })));
             std::vector<std::string> toks;
             for (int v : a) toks.push_back(v == NUL ? "null" : std::to_string(v));
-            w7s1::TreeNode *built = w7s1::buildTree(toks);
-            std::cout << ", \"levelArray\": " << printStrings(w7s1::levelArray(built)) << "}";
-            w7s1::freeTree(built);
+            w7s2::TreeNode *built = w7s2::buildTree(toks);
+            std::cout << ", \"levelArray\": " << printStrings(w7s2::levelArray(built)) << "}";
+            w7s2::freeTree(built);
         }
     }
     std::cout << "]";
@@ -645,6 +648,26 @@ int main()
             for (int i = 0; i < n; i++) std::cout << (i ? "," : "") << gifts[i];
             std::cout << "]}";
             for (int i = 0; i < n; i++) delete nodes[i];
+        }
+    }
+    std::cout << "]";
+
+    std::cout << ",\n\"week7lca\": [";
+    {
+        unsigned seed = 49;
+        auto rnd = [&](int m) { seed = seed * 1103515245u + 12345u; return (int)((seed >> 16) % m); };
+        auto printVec = [](const std::vector<int> &v) { std::string s = "["; for (size_t i = 0; i < v.size(); i++) s += (i ? "," : "") + std::to_string(v[i]); return s + "]"; };
+        for (int t = 0; t < 40; t++)
+        {
+            int n = 1 + rnd(12);
+            std::vector<int> parent(n, -1);
+            for (int i = 1; i < n; i++) parent[i] = t % 3 == 0 ? i - 1 : rnd(i);
+            int u = rnd(n);
+            int v = rnd(n);
+            std::cout << (t ? "," : "") << "{\"parent\": " << printVec(parent) << ", \"u\": " << u << ", \"v\": " << v
+                      << ", \"depthU\": " << w7s9::depthOf(parent, u)
+                      << ", \"pathU\": " << printVec(w7s9::pathToRoot(parent, u))
+                      << ", \"lca\": " << w7s9::lowestCommonAncestor(parent, u, v) << "}";
         }
     }
     std::cout << "]";

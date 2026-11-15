@@ -9,8 +9,10 @@ import {
   levelArray,
   levelOrderTrace,
   levelStrings,
+  parentLcaTrace,
   parseEdges,
   parseLevelArray,
+  parseParentArray,
   pathsTrace,
   size,
   traversalTrace,
@@ -26,6 +28,7 @@ const text = (tokens: (number | null)[]): string => tokens.map((t) => (t === nul
 const cases = cpp.week7.map((c, i) => [i, c] as const);
 const exprCases = cpp.week7expr.map((c, i) => [i, c] as const);
 const giftCases = cpp.week7gifts.map((c, i) => [i, c] as const);
+const lcaCases = cpp.week7lca.map((c, i) => [i, c] as const);
 
 const run = (gen: Generator<TreeStep>): TreeStep[] => [...gen];
 const last = (steps: TreeStep[]): TreeStep => steps[steps.length - 1];
@@ -53,7 +56,7 @@ describe('the level order array is read the way the examples are written', () =>
   });
 });
 
-describe('task 2: inorder agrees with solutions/2.cpp', () => {
+describe('task 1: inorder agrees with solutions/1.cpp', () => {
   it.each(cases)('case %i, recursively', (_, c) => {
     const steps = run(traversalTrace(parseLevelArray(text(c.tokens)), 'in', 'rec'));
     expect(numbers(last(steps).out)).toEqual(c.inorderRec);
@@ -93,7 +96,7 @@ describe('task 2: inorder agrees with solutions/2.cpp', () => {
   });
 });
 
-describe('task 1: building the tree from the level order array agrees with solutions/1.cpp', () => {
+describe('task 2: building the tree from the level order array agrees with solutions/2.cpp', () => {
   const built = (steps: TreeStep[]): string[] => {
     const nodes = last(steps).nodes ?? [];
     const tree: Tree = { nodes: new Map(nodes.map((n) => [n.id, n])), root: nodes.length ? nodes[0].id : null, binary: true };
@@ -255,6 +258,65 @@ describe('task 8: the gift counts agree with solutions/8.cpp', () => {
 
   it('keeps only the part of the input that hangs under the root', () => {
     expect(size(parseEdges('0 1, 5 6'))).toBe(2);
+  });
+});
+
+describe('task 9: the lowest common ancestor in a parent array agrees with solutions/9.cpp', () => {
+  const text = (parent: number[]): string => parent.join(' ');
+  const upTo = (steps: TreeStep[], kind: string): TreeStep[] => steps.slice(0, steps.findIndex((s) => s.kind === kind) + 1);
+  const walked = (steps: TreeStep[]): number[] => steps.filter((s) => s.kind === 'move').map((s) => Number(s.message.match(/= (-?\d+):/)![1]));
+
+  it.each(lcaCases)('case %i', (_, c) => {
+    const steps = run(parentLcaTrace(parseParentArray(text(c.parent)), c.u, c.v));
+    expect(last(steps).kind).toBe('ok');
+    expect(last(steps).out).toEqual([String(c.lca)]);
+  });
+
+  it.each(lcaCases)('case %i climbs exactly the path to the root', (_, c) => {
+    const climb = upTo(run(parentLcaTrace(parseParentArray(text(c.parent)), c.u, c.v)), 'visit');
+    expect([c.u, ...walked(climb)]).toEqual(c.pathU);
+    expect(last(climb).message).toContain(`дълбочина на ${c.u} е ${c.depthU}`);
+  });
+
+  it.each(lcaCases)('case %i marks only nodes that exist', (_, c) => {
+    const { tree, parent } = parseParentArray(text(c.parent));
+    const steps = run(parentLcaTrace({ tree, parent }, c.u, c.v));
+    for (const step of steps) {
+      for (const id of Object.keys(step.marks)) expect(tree.nodes.has(Number(id))).toBe(true);
+    }
+  });
+
+  it('reads the parent array as the tree of the task', () => {
+    const { tree, parent } = parseParentArray('-1 0 0 1 1 2 4 4');
+    expect(parent).toEqual([-1, 0, 0, 1, 1, 2, 4, 4]);
+    expect(size(tree)).toBe(8);
+    expect(height(tree)).toBe(4);
+    expect([...tree.nodes.values()].map((n) => n.kids.map((k) => k! - 1))).toEqual([[1, 2], [3, 4], [5], [], [6, 7], [], [], []]);
+  });
+
+  it('stops at the deeper of the two nodes when one is an ancestor of the other', () => {
+    expect(last(run(parentLcaTrace(parseParentArray('-1 0 0 1 1 2 4 4'), 4, 7))).out).toEqual(['4']);
+    expect(last(run(parentLcaTrace(parseParentArray('-1 0 0 1 1 2 4 4'), 7, 4))).out).toEqual(['4']);
+  });
+
+  it('needs no second climb when the two nodes are the same', () => {
+    expect(last(run(parentLcaTrace(parseParentArray('-1 0 0 1 1 2 4 4'), 5, 5))).out).toEqual(['5']);
+  });
+
+  it('walks a degenerate tree in h steps, not more', () => {
+    const steps = run(parentLcaTrace(parseParentArray('-1 0 1 2 3 4'), 5, 2));
+    expect(last(steps).out).toEqual(['2']);
+    expect(walked(upTo(steps, 'visit'))).toEqual([4, 3, 2, 1, 0]);
+  });
+
+  it('refuses an array that is not a tree', () => {
+    for (const bad of ['', '0 0 0', '-1 -1 0', '-1 0 3', '-1 2 1']) {
+      expect(last(run(parentLcaTrace(parseParentArray(bad), 0, 1))).kind).toBe('error');
+    }
+  });
+
+  it('refuses a node that is not in the array', () => {
+    expect(last(run(parentLcaTrace(parseParentArray('-1 0 0'), 0, 5))).kind).toBe('error');
   });
 });
 
